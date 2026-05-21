@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sprig — API documentation</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root { --sp-bg: #0b1120; --sp-fg: #e6edf3; --sp-muted: #8b94a3; --sp-line: #1f2937; --sp-accent: #38bdf8; --sp-violet: #a78bfa; --sp-green: #4ade80; }
+body { background: var(--sp-bg); color: var(--sp-fg); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+.sp-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+@media (max-width: 900px) { .sp-shell { grid-template-columns: 1fr; } }
+
+.sp-side {
+  background: #07090f; border-right: 1px solid var(--sp-line); padding: 24px 22px;
+  display: flex; flex-direction: column; gap: 22px;
+}
+.sp-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 800; letter-spacing: -.02em;
+}
+.sp-logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, var(--sp-accent), var(--sp-violet)); display: inline-block; }
+.sp-search {
+  background: #131a2a; border: 1px solid var(--sp-line); padding: 8px 12px;
+  font-family: inherit; color: var(--sp-fg); font-size: 13px; border-radius: 6px;
+}
+.sp-search::placeholder { color: var(--sp-muted); }
+.sp-nav h4 {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--sp-muted); font-weight: 700; margin: 14px 0 6px;
+}
+.sp-nav ul { list-style: none; padding: 0; }
+.sp-nav li a {
+  display: block; padding: 6px 8px; color: var(--sp-fg); text-decoration: none;
+  font-size: 13.5px; border-radius: 4px;
+}
+.sp-nav li a.active { background: rgba(56,189,248,.12); color: var(--sp-accent); }
+.sp-nav li a:hover { background: rgba(255,255,255,.04); }
+.sp-pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 9px; border: 1px solid var(--sp-line); background: #0e1422; color: var(--sp-fg);
+  text-decoration: none; align-self: flex-start;
+}
+.sp-pill .dot {
+  display: inline-block; width: 6px; height: 6px; background: var(--sp-violet);
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  box-shadow: 0 0 6px var(--sp-violet);
+}
+
+.sp-main { padding: 36px 44px; max-width: 980px; }
+@media (max-width: 700px) { .sp-main { padding: 26px 22px; } }
+.sp-crumb {
+  font-family: var(--mono); font-size: 11px; color: var(--sp-muted);
+  letter-spacing: .04em; margin-bottom: 12px;
+}
+.sp-crumb b { color: var(--sp-fg); }
+.sp-h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 900; letter-spacing: -.025em; line-height: 1.05; }
+.sp-lead { font-size: 16px; color: var(--sp-muted); margin-top: 10px; max-width: 70ch; line-height: 1.55; }
+
+.sp-tabs {
+  display: flex; gap: 0; margin-top: 22px; border-bottom: 1px solid var(--sp-line);
+}
+.sp-tab {
+  padding: 10px 14px; font-size: 12.5px; color: var(--sp-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; font-weight: 600;
+}
+.sp-tab.active { color: var(--sp-accent); border-color: var(--sp-accent); }
+
+.sp-section { margin-top: 32px; }
+.sp-section h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; letter-spacing: -.01em; }
+.sp-section p { color: var(--sp-muted); font-size: 14.5px; line-height: 1.65; }
+
+.sp-endpoint {
+  margin-top: 16px; border: 1px solid var(--sp-line); border-radius: 8px; overflow: hidden;
+}
+.sp-endpoint-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: #0f1626; border-bottom: 1px solid var(--sp-line);
+  font-family: var(--mono); font-size: 13px;
+}
+.sp-method { padding: 2px 7px; font-weight: 800; font-size: 11px; letter-spacing: .04em; border-radius: 3px; }
+.sp-method.get  { background: rgba(74,222,128,.15); color: var(--sp-green); border: 1px solid rgba(74,222,128,.3); }
+.sp-method.post { background: rgba(56,189,248,.15); color: var(--sp-accent); border: 1px solid rgba(56,189,248,.3); }
+.sp-endpoint-body { padding: 14px 16px; font-size: 13px; color: var(--sp-muted); }
+
+.sp-code {
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+  background: #050810; border: 1px solid var(--sp-line); padding: 14px 16px;
+  border-radius: 8px; white-space: pre; overflow: auto; margin-top: 12px;
+  color: #cdd9e5;
+}
+.sp-code .k { color: #f87171; } .sp-code .s { color: #fbbf24; }
+.sp-code .n { color: #38bdf8; } .sp-code .c { color: var(--sp-muted); }
+
+.sp-callout {
+  margin-top: 26px; padding: 18px 22px;
+  background: linear-gradient(135deg, rgba(56,189,248,.06), rgba(167,139,250,.08));
+  border: 1px solid rgba(56,189,248,.25); border-radius: 10px;
+}
+.sp-callout-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--sp-violet); font-weight: 700;
+}
+.sp-callout h3 { font-size: 18px; font-weight: 800; margin: 4px 0 8px; }
+.sp-callout p { color: var(--sp-fg); font-size: 13.5px; line-height: 1.6; }
+.sp-callout pre {
+  font-family: var(--mono); font-size: 12px; background: rgba(0,0,0,.4);
+  padding: 10px 12px; border: 1px solid var(--sp-line); border-radius: 6px;
+  white-space: pre-wrap; word-break: break-all; margin-top: 10px;
+}
+
+.sp-foot {
+  margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--sp-line);
+  font-family: var(--mono); font-size: 11px; color: var(--sp-muted); letter-spacing: .04em;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.sp-foot a { color: var(--sp-accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="sp-shell">
+  <aside class="sp-side">
+    <div class="sp-brand"><span class="sp-logo"></span>Sprig</div>
+    <input class="sp-search" type="search" placeholder="Search docs…">
+    <nav class="sp-nav">
+      <h4>Getting started</h4>
+      <ul>
+        <li><a href="#">Quickstart</a></li>
+        <li><a href="#">Authentication</a></li>
+        <li><a href="#">SDKs</a></li>
+      </ul>
+      <h4>Core API</h4>
+      <ul>
+        <li><a href="#" class="active">Workflows</a></li>
+        <li><a href="#">Steps</a></li>
+        <li><a href="#">Triggers</a></li>
+        <li><a href="#">Schedules</a></li>
+      </ul>
+      <h4>For agents</h4>
+      <ul>
+        <li><a href="#">OpenAPI feed</a></li>
+        <li><a href="#">Type schemas</a></li>
+        <li><a href="#">Indexing policy</a></li>
+      </ul>
+    </nav>
+    <a class="sp-pill" href="/examples"><span class="dot"></span>Powered by STILE</a>
+  </aside>
+
+  <main class="sp-main">
+    <div class="sp-crumb">Sprig &nbsp;/&nbsp; Core API &nbsp;/&nbsp; <b>Workflows</b></div>
+    <h1 class="sp-h1">Workflows</h1>
+    <p class="sp-lead">A workflow is an ordered series of steps that run on a Sprig durable runtime. Workflows can be triggered by HTTP, cron, queue messages, or directly from another workflow.</p>
+
+    <div class="sp-tabs">
+      <div class="sp-tab active">Reference</div>
+      <div class="sp-tab">Examples</div>
+      <div class="sp-tab">Changelog</div>
+    </div>
+
+    <div class="sp-section">
+      <h2>Create a workflow</h2>
+      <p>Returns a <code>Workflow</code> resource. Idempotent on <code>name</code>.</p>
+      <div class="sp-endpoint">
+        <div class="sp-endpoint-head">
+          <span class="sp-method post">POST</span>
+          <span>/v1/workflows</span>
+        </div>
+        <div class="sp-endpoint-body">Create a new workflow definition. The runtime begins accepting triggers immediately.</div>
+      </div>
+      <pre class="sp-code"><span class="c">// Request</span>
+<span class="n">POST</span> /v1/workflows
+<span class="k">Authorization</span>: Bearer sk_live_***
+<span class="k">Content-Type</span>: application/json
+
+{
+  <span class="s">"name"</span>: <span class="s">"order-fulfillment"</span>,
+  <span class="s">"trigger"</span>: { <span class="s">"type"</span>: <span class="s">"http"</span> },
+  <span class="s">"steps"</span>: [
+    { <span class="s">"name"</span>: <span class="s">"reserve-inventory"</span>, <span class="s">"retries"</span>: 3 },
+    { <span class="s">"name"</span>: <span class="s">"charge-card"</span> },
+    { <span class="s">"name"</span>: <span class="s">"send-receipt"</span> }
+  ]
+}</pre>
+    </div>
+
+    <div class="sp-section">
+      <h2>List workflows</h2>
+      <p>Paginated. Returns up to 100 workflows per page.</p>
+      <div class="sp-endpoint">
+        <div class="sp-endpoint-head">
+          <span class="sp-method get">GET</span>
+          <span>/v1/workflows?cursor=&amp;limit=50</span>
+        </div>
+        <div class="sp-endpoint-body">Lists workflows owned by the authenticated workspace.</div>
+      </div>
+    </div>
+
+    <!-- AGENT CALLOUT — STILE -->
+    <div class="sp-callout">
+      <div class="sp-callout-tag">Indexing for AI agents</div>
+      <h3>The OpenAPI feed lives behind a STILE medium-tier gate.</h3>
+      <p>Sprig publishes a fully-typed OpenAPI 3.1 spec at <code>/openapi.json</code>. To prevent low-effort scraping while keeping the feed friendly to model-driven indexers, the endpoint is gated at <code>tier=medium</code> — agents must echo the embedded challenge word back to the verify endpoint.</p>
+      <pre>GET /openapi.json
+→ 401 stile-required
+   X-STILE-Verify: /__stile-verify?token=…&amp;word=quartz-ladder
+
+GET /__stile-verify?token=…&amp;word=quartz-ladder
+→ 200 Set-Cookie: stile=…
+
+GET /openapi.json
+→ 200 (full spec, 1.2MB)</pre>
+    </div>
+
+    <div class="sp-foot">
+      <span>Sprig docs · STILE example deployment</span>
+      <span><a href="/examples">← back to examples</a> · <a href="/spec">stile spec</a> · <a href="/playground">playground</a></span>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

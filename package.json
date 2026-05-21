@@ -1,0 +1,43 @@
+{
+  "name": "stile",
+  "version": "0.3.0",
+  "description": "STILE — the captcha that lets AI agents in. Invisible to humans, trivial for any LLM, plug-and-play.",
+  "main": "lib/stile.js",
+  "exports": {
+    ".":                "./lib/stile.js",
+    "./config":         "./lib/config.js",
+    "./store-memory":   "./lib/store-memory.js",
+    "./store-file":     "./lib/store-file.js",
+    "./adapters/express":  "./lib/adapters/express.js",
+    "./adapters/fastify":  "./lib/adapters/fastify.js",
+    "./adapters/hono":     "./lib/adapters/hono.js",
+    "./adapters/next":     "./lib/adapters/next.js",
+    "./adapters/cf-worker":"./lib/adapters/cf-worker.js"
+  },
+  "files": [
+    "lib/",
+    "public/",
+    "templates/",
+    "server.js"
+  ],
+  "scripts": {
+    "start":        "node server.js",
+    "dev":          "node server.js",
+    "test":         "node --test",
+    "test:trust":   "node --test test/trust/*.test.js",
+    "test:routing": "node --test test/routing/*.test.js"
+  },
+  "keywords": ["stile", "captcha", "ai", "agents", "llm", "verification", "anti-bot-inverse"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rar-file/STILE-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rar-file/STILE-/issues"
+  },
+  "homepage": "https://github.com/rar-file/STILE-#readme",
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STILE — Adopters</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">adopters</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/playground">Playground</a></li>
+    <li><a href="/wall">Wall</a></li>
+    <li><a href="/">← Home</a></li>
+  </ul>
+  <a class="nav-pill" id="nav-auth" href="/signup">Sign up →</a>
+</nav>
+
+<div class="shell">
+  <div class="shell-pad">
+    <span class="label">Composition №12</span>
+    <h1>Sites shipping<br>the STILE badge.</h1>
+
+<pre>&lt;script src="https://stile.dev/badge.js"
+        data-domain="example.com"&gt;&lt;/script&gt;</pre>
+  </div>
+  <div class="adopters-list" id="ad-list">
+    <div style="padding:24px 28px;font-weight:700">Loading…</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span>Composition №12 · Adopters</span>
+  <span>One badge, one block</span>
+  <span>v.0.3 — MMXXVI</span>
+</div>
+<footer class="foot">
+  <span>STILE · the captcha for AI agents</span>
+  <span><a href="/">Home</a> · <a href="/spec">Spec</a></span>
+  <span>© MMXXVI</span>
+</footer>
+
+<script src="/_auth.js"></script>
+<script>
+  (function () {
+    if (!Auth.session()) return;
+    const pill = document.getElementById('nav-auth');
+    if (pill) { pill.textContent = 'Dashboard →'; pill.href = '/dashboard'; }
+  }());
+</script>
+<script>
+async function load() {
+  const r = await fetch('/api/adopters');
+  const j = await r.json();
+  const grid = document.getElementById('ad-list');
+  grid.innerHTML = '';
+  if (!j.adopters || j.adopters.length === 0) {
+    grid.innerHTML = '<div style="padding:40px;font-weight:700;grid-column:1/-1">No adopters yet. Add the badge to your site.</div>';
+    return;
+  }
+  for (const a of j.adopters) {
+    const cell = document.createElement('div');
+    cell.className = 'adopter-card';
+    const ago = new Date(a.last_ping).toLocaleString();
+    cell.innerHTML = `
+      <div><span class="pill ${a.status === 'verified' ? 'verified' : a.status === 'rejected' ? 'rejected' : ''}">${escapeHtml(a.status)}</span></div>
+      <div class="domain">${escapeHtml(a.domain)}</div>
+      <div class="meta">${a.install_count || 0} pings · ${ago}</div>`;
+    grid.appendChild(cell);
+  }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+load();
+setInterval(load, 8000);
+</script>
+</body>
+</html>

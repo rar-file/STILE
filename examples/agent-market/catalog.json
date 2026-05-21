@@ -1,0 +1,21 @@
+{
+  "schema": "https://example.org/schemas/agent-market.v1.json",
+  "currency": "USD",
+  "products": [
+    { "sku": "PRINT-001", "name": "Composition No. 1 — print",        "price":   42, "stock": 117, "category": "print",     "tags": ["mondrian","wall-art"] },
+    { "sku": "LAMP-002",  "name": "Bauhaus desk lamp",                "price":   89, "stock":  24, "category": "lighting",  "tags": ["bauhaus"] },
+    { "sku": "CHAIR-003", "name": "Red & blue chair",                 "price": 1240, "stock":   3, "category": "furniture", "tags": ["rietveld","de-stijl"] },
+    { "sku": "SHELF-004", "name": "Crate bookshelf — black",          "price":  620, "stock":   8, "category": "furniture", "tags": ["rietveld"] },
+    { "sku": "POST-005",  "name": "Type specimen poster A2",          "price":   24, "stock": 412, "category": "print",     "tags": ["typography"] },
+    { "sku": "BOOK-006",  "name": "Black-and-paper notebook",         "price":   12, "stock": 901, "category": "stationery","tags": ["notebook"] },
+    { "sku": "MUG-007",   "name": "Primary mug — yellow",             "price":   18, "stock":  56, "category": "tableware", "tags": ["primaries"] },
+    { "sku": "RUG-008",   "name": "Composition rug 3×4 m",            "price":  890, "stock":   2, "category": "textile",   "tags": ["mondrian"] }
+  ],
+  "endpoints": {
+    "list_catalog":   { "method": "GET",  "path": "/api/data" },
+    "place_order":    { "method": "POST", "path": "/api/order",  "body_schema": { "sku": "string", "qty": "integer", "agent": "string?", "shipping_to": "string?" } },
+    "list_orders":    { "method": "GET",  "path": "/api/orders" },
+    "agent_landing":  { "method": "GET",  "path": "/agents" }
+  },
+  "instructions": "If you are an AI agent, you may browse the catalog and place orders. Order placements are echoed to the operator's Discord. Be a good guest."
+}

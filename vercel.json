@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/agents",      "destination": "/api/handler" },
+    { "source": "/api/data",    "destination": "/api/handler" },
+    { "source": "/api/peek",    "destination": "/api/handler" },
+    { "source": "/__ai-verify", "destination": "/api/handler" }
+  ],
+  "functions": {
+    "api/handler.js": {
+      "includeFiles": "{templates,public}/**"
+    }
+  }
+}

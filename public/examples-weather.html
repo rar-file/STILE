@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boreal Met — observation network</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root { --bm-bg: #0c1117; --bm-fg: #c9d4e0; --bm-dim: #6b7280; --bm-line: #1c2230; --bm-amber: #fbbf24; --bm-cyan: #67e8f9; --bm-red: #ef4444; --bm-green: #34d399; }
+/* Match styles.css's `html, body` selector so source order resolves the
+   color override deterministically — without this, descendants that
+   rely on inheritance (h1, h2, .bm-stn-name) can render black-on-black
+   when `html, body { color: var(--black) }` ties on specificity. */
+html, body { background: var(--bm-bg); color: var(--bm-fg); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+.bm-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; background: #060a0f; border-bottom: 1px solid var(--bm-line);
+}
+.bm-brand {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 16px; font-weight: 800; letter-spacing: -.02em;
+  font-variant-caps: small-caps;
+}
+.bm-brand .ico {
+  width: 22px; height: 22px; border: 1.5px solid var(--bm-cyan); border-radius: 50%;
+  position: relative;
+}
+.bm-brand .ico::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 8px; height: 8px; background: var(--bm-cyan); border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px var(--bm-cyan);
+}
+.bm-nav-links { display: flex; gap: 22px; list-style: none; align-items: center; }
+.bm-nav-links a {
+  color: var(--bm-fg); text-decoration: none; font-size: 13px;
+  font-family: var(--mono); letter-spacing: .04em;
+}
+.bm-nav-links a:hover { color: var(--bm-cyan); }
+.bm-pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 9px; border: 1px solid var(--bm-line); background: #0e1422; color: var(--bm-fg);
+  text-decoration: none;
+}
+.bm-pill .dot {
+  display: inline-block; width: 6px; height: 6px; background: var(--bm-amber);
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  box-shadow: 0 0 6px var(--bm-amber);
+}
+
+.bm-hero {
+  padding: 42px 28px 28px; max-width: 1180px; margin: 0 auto;
+}
+.bm-hero h1 {
+  font-size: clamp(36px, 5vw, 60px); font-weight: 900; letter-spacing: -.03em; line-height: 1;
+  color: var(--bm-fg);
+}
+.bm-hero h1 em { font-style: normal; color: var(--bm-cyan); }
+.bm-hero p { color: var(--bm-dim); font-size: 15px; margin-top: 12px; max-width: 64ch; line-height: 1.55; }
+.bm-hero-line {
+  display: flex; gap: 22px; margin-top: 18px; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 12px;
+}
+.bm-hero-line span::before { content: '◉ '; color: var(--bm-amber); }
+.bm-hero-line .ok::before { color: var(--bm-green); }
+
+.bm-board {
+  max-width: 1180px; margin: 0 auto; padding: 0 28px 28px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+}
+@media (max-width: 1000px) { .bm-board { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .bm-board { grid-template-columns: 1fr; } }
+.bm-stn {
+  background: #11161f; border: 1px solid var(--bm-line); padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.bm-stn-id {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--bm-dim);
+}
+.bm-stn-name { font-size: 18px; font-weight: 700; letter-spacing: -.01em; color: var(--bm-fg); }
+.bm-stn-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--bm-dim); }
+.bm-stn-row b { color: var(--bm-fg); font-weight: 600; }
+.bm-stn-temp {
+  font-family: var(--mono); font-size: 38px; font-weight: 700;
+  letter-spacing: -.04em; color: var(--bm-cyan); line-height: 1;
+}
+.bm-stn-temp.warm { color: var(--bm-amber); }
+.bm-stn-temp.cold { color: #93c5fd; }
+.bm-stn-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--bm-dim); margin-top: 4px;
+  border-top: 1px solid var(--bm-line); padding-top: 8px;
+}
+.bm-stn-foot .ok { color: var(--bm-green); }
+.bm-stn-foot .warn { color: var(--bm-amber); }
+.bm-stn-foot .err { color: var(--bm-red); }
+
+.bm-sparkline {
+  display: flex; align-items: flex-end; gap: 2px; height: 36px; margin-top: 4px;
+}
+.bm-sparkline span {
+  flex: 1; background: var(--bm-cyan); opacity: .85;
+  min-width: 2px;
+}
+.bm-sparkline.warm span { background: var(--bm-amber); }
+.bm-sparkline.cold span { background: #93c5fd; }
+
+.bm-feed {
+  max-width: 1180px; margin: 0 auto; padding: 28px;
+  background: #060a0f; border: 1px solid var(--bm-line); border-radius: 0;
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 36px;
+}
+@media (max-width: 900px) { .bm-feed { grid-template-columns: 1fr; padding: 22px; } }
+.bm-feed h2 { font-size: clamp(24px, 3vw, 36px); font-weight: 900; letter-spacing: -.02em; line-height: 1.05; color: var(--bm-fg); }
+.bm-feed h2 em { font-style: normal; color: var(--bm-amber); }
+.bm-feed p { color: var(--bm-dim); font-size: 14px; line-height: 1.6; margin-top: 12px; max-width: 56ch; }
+.bm-feed dl {
+  display: grid; grid-template-columns: 90px 1fr; gap: 8px 14px; margin-top: 16px; font-size: 13px;
+}
+.bm-feed dt {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--bm-amber); padding-top: 2px;
+}
+.bm-feed dd { color: var(--bm-fg); margin: 0; }
+.bm-feed dd code { font-family: var(--mono); font-size: 12px; background: #11161f; padding: 1px 6px; border: 1px solid var(--bm-line); }
+.bm-feed pre {
+  font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+  background: #0a0f17; border: 1px solid var(--bm-line); padding: 14px 16px;
+  white-space: pre; overflow: auto; color: #aac3df;
+}
+
+.bm-foot {
+  padding: 22px 28px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--bm-dim);
+  border-top: 1px solid var(--bm-line); margin-top: 28px;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.bm-foot a { color: var(--bm-cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="bm-nav">
+  <div class="bm-brand"><span class="ico"></span>Boreal Met</div>
+  <ul class="bm-nav-links">
+    <li><a href="#">Network</a></li>
+    <li><a href="#">Stations</a></li>
+    <li><a href="#">Forecasts</a></li>
+    <li><a href="#">API</a></li>
+  </ul>
+  <a class="bm-pill" href="/examples"><span class="dot"></span>Powered by STILE</a>
+</div>
+
+<section class="bm-hero">
+  <h1>A small <em>observation network</em><br>for the upper north.</h1>
+  <p>Boreal Met operates 18 micro-stations across northern Sweden, Finland and the Kola peninsula. Public dashboard for everyone; structured observation feed for verified machine clients only — strong-tier STILE handshake, with agent declaration.</p>
+  <div class="bm-hero-line">
+    <span class="ok">18 / 18 stations reporting</span>
+    <span>last refresh 14s ago</span>
+    <span>API uptime 99.97% (30d)</span>
+  </div>
+</section>
+
+<div class="bm-board">
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · ABK / 67.96°N</span>
+    <div class="bm-stn-name">Abisko</div>
+    <div class="bm-stn-temp cold">−4.2°</div>
+    <div class="bm-sparkline cold"><span style="height:30%"></span><span style="height:38%"></span><span style="height:42%"></span><span style="height:36%"></span><span style="height:44%"></span><span style="height:50%"></span><span style="height:48%"></span><span style="height:52%"></span><span style="height:56%"></span><span style="height:50%"></span><span style="height:44%"></span><span style="height:48%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>4.1 m/s NE</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>71%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>14s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · KIR / 67.85°N</span>
+    <div class="bm-stn-name">Kiruna</div>
+    <div class="bm-stn-temp cold">−2.8°</div>
+    <div class="bm-sparkline cold"><span style="height:46%"></span><span style="height:42%"></span><span style="height:48%"></span><span style="height:50%"></span><span style="height:52%"></span><span style="height:54%"></span><span style="height:58%"></span><span style="height:60%"></span><span style="height:62%"></span><span style="height:58%"></span><span style="height:54%"></span><span style="height:56%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>2.7 m/s N</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>68%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>9s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · TRH / 63.43°N</span>
+    <div class="bm-stn-name">Trondheim</div>
+    <div class="bm-stn-temp">3.6°</div>
+    <div class="bm-sparkline"><span style="height:60%"></span><span style="height:62%"></span><span style="height:64%"></span><span style="height:66%"></span><span style="height:68%"></span><span style="height:70%"></span><span style="height:72%"></span><span style="height:70%"></span><span style="height:68%"></span><span style="height:72%"></span><span style="height:74%"></span><span style="height:76%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>6.5 m/s SW</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>83%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>11s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · VAA / 63.10°N</span>
+    <div class="bm-stn-name">Vaasa</div>
+    <div class="bm-stn-temp">2.1°</div>
+    <div class="bm-sparkline"><span style="height:48%"></span><span style="height:52%"></span><span style="height:56%"></span><span style="height:58%"></span><span style="height:60%"></span><span style="height:62%"></span><span style="height:64%"></span><span style="height:66%"></span><span style="height:68%"></span><span style="height:66%"></span><span style="height:64%"></span><span style="height:62%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>3.8 m/s W</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>78%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>17s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · ROV / 66.50°N</span>
+    <div class="bm-stn-name">Rovaniemi</div>
+    <div class="bm-stn-temp cold">−1.5°</div>
+    <div class="bm-sparkline cold"><span style="height:52%"></span><span style="height:54%"></span><span style="height:56%"></span><span style="height:58%"></span><span style="height:54%"></span><span style="height:50%"></span><span style="height:52%"></span><span style="height:56%"></span><span style="height:60%"></span><span style="height:62%"></span><span style="height:64%"></span><span style="height:60%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>1.9 m/s NW</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>74%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>22s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · MUR / 68.96°N</span>
+    <div class="bm-stn-name">Murmansk</div>
+    <div class="bm-stn-temp cold">−6.3°</div>
+    <div class="bm-sparkline cold"><span style="height:24%"></span><span style="height:30%"></span><span style="height:36%"></span><span style="height:40%"></span><span style="height:44%"></span><span style="height:42%"></span><span style="height:38%"></span><span style="height:34%"></span><span style="height:32%"></span><span style="height:30%"></span><span style="height:28%"></span><span style="height:26%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>8.2 m/s E</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>82%</b></div>
+    <div class="bm-stn-foot"><span class="warn">● degraded</span><span>1m 4s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · SDK / 66.13°N</span>
+    <div class="bm-stn-name">Sodankylä</div>
+    <div class="bm-stn-temp cold">−3.7°</div>
+    <div class="bm-sparkline cold"><span style="height:42%"></span><span style="height:44%"></span><span style="height:46%"></span><span style="height:48%"></span><span style="height:50%"></span><span style="height:52%"></span><span style="height:54%"></span><span style="height:56%"></span><span style="height:54%"></span><span style="height:52%"></span><span style="height:50%"></span><span style="height:48%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>2.2 m/s N</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>69%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>7s ago</span></div>
+  </div>
+
+  <div class="bm-stn">
+    <span class="bm-stn-id">stn · HEL / 60.17°N</span>
+    <div class="bm-stn-name">Helsinki</div>
+    <div class="bm-stn-temp warm">5.4°</div>
+    <div class="bm-sparkline warm"><span style="height:60%"></span><span style="height:64%"></span><span style="height:66%"></span><span style="height:68%"></span><span style="height:70%"></span><span style="height:72%"></span><span style="height:74%"></span><span style="height:76%"></span><span style="height:78%"></span><span style="height:76%"></span><span style="height:74%"></span><span style="height:72%"></span></div>
+    <div class="bm-stn-row"><span>wind</span><b>5.3 m/s SW</b></div>
+    <div class="bm-stn-row"><span>humid</span><b>76%</b></div>
+    <div class="bm-stn-foot"><span class="ok">● online</span><span>5s ago</span></div>
+  </div>
+
+</div>
+
+<section class="bm-feed">
+  <div>
+    <h2>Pulling our <em>obs feed</em>?<br>Identify your client.</h2>
+    <p>Boreal Met's raw observation streams are gated at <code style="font-family:var(--mono);background:#11161f;padding:1px 6px;border:1px solid var(--bm-line)">tier=strong</code>. Verified machine clients send the challenge token, the embedded word, and a stable agent declaration. We log it, attribute downstream forecasts, and rate-limit per-agent.</p>
+    <dl>
+      <dt>endpoint</dt><dd><code>/obs/{station}.csv</code> · 1-min cadence</dd>
+      <dt>history</dt><dd><code>/obs/{station}/{yyyy-mm-dd}.csv.gz</code></dd>
+      <dt>schema</dt><dd>WMO BUFR mapped to flat CSV; UTC timestamps</dd>
+      <dt>license</dt><dd>CC-BY-4.0 with citation chain</dd>
+    </dl>
+  </div>
+  <div>
+    <pre>$ curl -i https://boreal.met/obs/ABK.csv
+HTTP/1.1 401 Unauthorized
+X-STILE-Verify: /__stile-verify?token=…&amp;word=lichen-frost
+X-STILE-Tier:   strong
+
+$ curl https://boreal.met/__stile-verify \
+    ?token=… \
+    &amp;word=lichen-frost \
+    &amp;agent=arctic-forecast-bot/2.4
+HTTP/1.1 200 OK
+Set-Cookie: stile=…
+X-STILE-Agent-Echo: arctic-forecast-bot/2.4
+
+$ curl https://boreal.met/obs/ABK.csv -b stile=…
+ts_utc,t2m_c,wind_ms,wind_dir,rh_pct
+2026-05-03T13:00:00Z,-4.2,4.1,42,71
+2026-05-03T12:59:00Z,-4.1,4.0,40,71
+2026-05-03T12:58:00Z,-4.0,3.9,38,72
+2026-05-03T12:57:00Z,-4.0,4.2,36,72
+2026-05-03T12:56:00Z,-3.9,4.1,38,71</pre>
+  </div>
+</section>
+
+<div class="bm-foot">
+  <span>Boreal Met · STILE example deployment</span>
+  <span><a href="/examples">← back to examples</a> · <a href="/spec">spec</a> · <a href="/playground">playground</a></span>
+  <span>© MMXXVI · fictional</span>
+</div>
+
+</body>
+</html>

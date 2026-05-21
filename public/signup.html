@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign up · STILE</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+  .auth-shell { max-width: 1340px; margin: 0 auto; border-left: var(--line-w) solid var(--black); border-right: var(--line-w) solid var(--black); min-height: calc(100vh - 78px); background: var(--paper); }
+  @media (min-width: 1400px) { .auth-side { padding: 76px 60px; } .auth-form { padding: 76px 60px; } }
+  .auth-grid { display: grid; grid-template-columns: 1.1fr 1fr; min-height: calc(100vh - 78px); }
+  .auth-side { padding: 56px 44px; border-right: var(--line-w) solid var(--black); display: flex; flex-direction: column; justify-content: space-between; }
+  .auth-side h1 { font-size: clamp(48px, 6vw, 84px); font-weight: 900; letter-spacing: -.04em; line-height: .92; }
+  .auth-side .out { -webkit-text-stroke: 3px #fff; color: transparent; }
+  .auth-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .auth-meta span { border: 2px solid #fff; padding: 4px 9px; }
+  .auth-form { padding: 56px 44px; display: flex; flex-direction: column; gap: 18px; }
+  .auth-form .label { margin: 0; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .field input { font-family: var(--mono); font-size: 14px; padding: 12px 14px; border: 2px solid var(--black); background: #fff; outline: none; }
+  .field input:focus { background: var(--yellow); }
+  .auth-submit { background: var(--black); color: var(--paper); border: 2px solid var(--black); padding: 14px 18px; font-weight: 900; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .auth-submit:hover { background: var(--paper); color: var(--black); }
+  .auth-alt { font-size: 12px; }
+  .auth-alt a { color: var(--blue); font-weight: 700; }
+  .auth-err { background: var(--red); color: #fff; padding: 10px 12px; font-size: 12px; font-weight: 700; letter-spacing: .04em; display: none; }
+  .auth-err.on { display: block; }
+  .auth-disclosure { background: var(--black); color: var(--paper); padding: 10px 14px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+  @media (max-width: 800px) { .auth-grid { grid-template-columns: 1fr; } .auth-side { border-right: none; border-bottom: var(--line-w) solid #fff; } }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">v0.3</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/playground">Playground</a></li>
+    <li><a href="/wall">Wall</a></li>
+  </ul>
+  <a class="nav-pill" href="/login">Log in →</a>
+</nav>
+
+<div class="auth-shell">
+  <div class="auth-grid">
+    <section class="auth-side cell b" style="padding:56px 44px">
+      <div>
+        <span class="label" style="color:#fff">Composition · Account</span>
+        <h1 style="color:#fff">Open<br>your<br><span class="out">project</span>.</h1>
+      </div>
+      <div class="auth-meta">
+        <span>preview · local-only</span>
+        <span>tier · easy</span>
+      </div>
+    </section>
+
+    <form class="auth-form" id="form" autocomplete="on">
+      <span class="label">Sign up</span>
+
+      <div class="auth-err" id="err"></div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Password · 8+ chars</label>
+        <input id="password" type="password" name="password" autocomplete="new-password" required minlength="8">
+      </div>
+      <div class="field">
+        <label for="projectName">Project name</label>
+        <input id="projectName" type="text" name="projectName" placeholder="acme-edge" maxlength="60">
+      </div>
+
+      <button class="auth-submit" type="submit">Create account →</button>
+
+      <p class="auth-alt">Already have one? <a href="/login">Log in</a>.</p>
+      <p class="auth-disclosure">Preview · accounts live in your browser only · no server, no email, no recovery.</p>
+    </form>
+  </div>
+</div>
+
+<script src="/_auth.js"></script>
+<script>
+  Auth.guestRedirect();
+  const form = document.getElementById('form');
+  const err = document.getElementById('err');
+  function show(msg) { err.textContent = msg; err.classList.add('on'); }
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.classList.remove('on');
+    const email = form.email.value;
+    const password = form.password.value;
+    const projectName = form.projectName.value;
+    try {
+      await Auth.signUp({ email, password, projectName });
+      const next = new URLSearchParams(location.search).get('next');
+      location.assign(next || '/dashboard');
+    } catch (e) {
+      show(e.message || String(e));
+    }
+  });
+</script>
+</body>
+</html>

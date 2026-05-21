@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STILE — Playground</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">playground</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/examples">Examples</a></li>
+    <li><a href="/wall">Wall</a></li>
+    <li><a href="/">← Home</a></li>
+  </ul>
+  <a class="nav-pill" id="nav-auth" href="/signup">Sign up →</a>
+</nav>
+
+<!-- HERO -->
+<section class="composition composition-12 lab-hero">
+  <div class="cell s8 no-r">
+    <span class="label">Playground · interactive lab</span>
+    <h1 class="lab-h">Poke the protocol.</h1>
+    <p class="lead" style="max-width:62ch">Issue a challenge, edit the verify request, fire replays / forgeries / honeypot traps. Every request and response shows up in the log below.</p>
+  </div>
+  <div class="cell s4 k no-r lab-hero-side">
+    <div class="lab-hero-num">10</div>
+    <div class="lab-hero-meta">
+      <span>Composition №10</span>
+      <span>Four steps · A→D</span>
+      <span>BYO model · optional</span>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 01 — ISSUE -->
+<section class="composition composition-12 step-block lab-block" id="lab-step1">
+  <div class="cell s3 b step-marker-sm no-r">
+    <span class="step-numeral-sm">01</span>
+    <span class="step-verb">Issue</span>
+    <span class="step-sub">mint a fresh challenge</span>
+  </div>
+  <div class="cell s9 no-r">
+    <span class="label">Step 01 · Pick a tier &amp; issue</span>
+    <h2 class="lab-h2">Three flavors of strict.</h2>
+
+    <div class="tier-grid" role="radiogroup" aria-label="challenge tier">
+      <button type="button" class="tier-card t-easy is-active" data-tier="easy" role="radio" aria-checked="true">
+        <span class="tier-name">easy</span>
+        <span class="tier-tag">relay</span>
+        <span class="tier-desc">Token only. The agent just relays one HMAC-signed string.</span>
+        <ul class="tier-needs">
+          <li class="ok">token</li>
+          <li class="off">word</li>
+          <li class="off">agent</li>
+        </ul>
+      </button>
+      <button type="button" class="tier-card t-medium" data-tier="medium" role="radio" aria-checked="false">
+        <span class="tier-name">medium</span>
+        <span class="tier-tag">+ word</span>
+        <span class="tier-desc">Token plus a word the agent must read out of the embedded block.</span>
+        <ul class="tier-needs">
+          <li class="ok">token</li>
+          <li class="ok">word</li>
+          <li class="off">agent</li>
+        </ul>
+      </button>
+      <button type="button" class="tier-card t-strong" data-tier="strong" role="radio" aria-checked="false">
+        <span class="tier-name">strong</span>
+        <span class="tier-tag">+ word + agent</span>
+        <span class="tier-desc">Adds a self-declared agent identifier so we know what asked.</span>
+        <ul class="tier-needs">
+          <li class="ok">token</li>
+          <li class="ok">word</li>
+          <li class="ok">agent</li>
+        </ul>
+      </button>
+    </div>
+
+    <select id="lab-tier" class="visually-hidden" aria-hidden="true">
+      <option value="easy" selected>easy</option>
+      <option value="medium">medium</option>
+      <option value="strong">strong</option>
+    </select>
+
+    <div class="lab-action-row">
+      <button class="btn solid huge" id="lab-issue">↓ Issue new challenge</button>
+      <span id="lab-issue-status" class="lab-status">no challenge yet</span>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 02 — INSPECT -->
+<section class="composition composition-12 step-block lab-block" id="lab-step2">
+  <div class="cell s3 y step-marker-sm no-r">
+    <span class="step-numeral-sm">02</span>
+    <span class="step-verb">Inspect</span>
+    <span class="step-sub">what the server stamped</span>
+  </div>
+  <div class="cell s9 no-r">
+    <span class="label">Step 02 · Read the receipt</span>
+    <h2 class="lab-h2">Anatomy of a challenge.</h2>
+
+    <div class="lab-inspect-grid">
+      <div class="receipt lab-receipt">
+        <div class="receipt-head">
+          <span>challenge</span>
+          <span class="lab-tier-badge" id="lab-c-tier-badge">—</span>
+        </div>
+        <div class="receipt-rows">
+          <div class="receipt-row"><span class="k">token</span><span class="v"><code class="lab-code mono" id="lab-c-token">—</code></span></div>
+          <div class="receipt-row"><span class="k">nonce</span><span class="v"><code class="lab-code mono" id="lab-c-nonce">—</code></span></div>
+          <div class="receipt-row"><span class="k">word</span><span class="v"><code class="lab-code mono" id="lab-c-word">—</code></span></div>
+          <div class="receipt-row"><span class="k">expires</span><span class="v"><code class="lab-code mono" id="lab-c-exp">—</code></span></div>
+        </div>
+      </div>
+      <div class="lab-peek-wrap">
+        <div class="lab-peek-head">
+          <span>what an AI sees</span>
+          <span class="lab-peek-hint">embedded HTML block</span>
+        </div>
+        <pre class="code-block lab-peek-pre" id="lab-peek"><span style="opacity:.6">issue a challenge to populate</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 03 — VERIFY -->
+<section class="composition composition-12 step-block lab-block" id="lab-step3">
+  <div class="cell s3 r step-marker-sm no-r">
+    <span class="step-numeral-sm">03</span>
+    <span class="step-verb">Verify</span>
+    <span class="step-sub">edit any field, fire</span>
+  </div>
+  <div class="cell s9 no-r">
+    <span class="label">Step 03 · Build the verify request</span>
+    <h2 class="lab-h2">Tweak it. Send it. See what breaks.</h2>
+
+    <div class="lab-form">
+      <label class="lab-field lab-field-wide">
+        <span class="lab-k">token</span>
+        <input id="lab-v-token" class="cfg-input mono" type="text" placeholder="(issue a challenge first)">
+      </label>
+      <label class="lab-field">
+        <span class="lab-k">word <em class="lab-opt">required for medium / strong</em></span>
+        <input id="lab-v-word" class="cfg-input mono" type="text" placeholder="">
+      </label>
+      <label class="lab-field">
+        <span class="lab-k">agent <em class="lab-opt">required for strong</em></span>
+        <input id="lab-v-agent" class="cfg-input mono" type="text" placeholder="claude-haiku-4-5">
+      </label>
+    </div>
+
+    <div class="lab-action-row">
+      <button class="btn solid huge" id="lab-verify">↳ Send GET /__stile-verify</button>
+      <span class="lab-action-hint">manual: uses whatever is in the form right now</span>
+    </div>
+
+    <div class="scen-section">
+      <div class="scen-group scen-group-ok">
+        <div class="scen-head"><span class="scen-dot"></span>Should pass</div>
+        <div class="scen-buttons">
+          <button class="btn pill scen-btn" data-scen="happy">happy path · full</button>
+          <button class="btn pill scen-btn" data-scen="token-only">token only</button>
+          <button class="btn pill scen-btn" data-scen="token-word">token + word</button>
+        </div>
+      </div>
+      <div class="scen-group scen-group-warn">
+        <div class="scen-head"><span class="scen-dot"></span>Should warn</div>
+        <div class="scen-buttons">
+          <button class="btn pill scen-btn" data-scen="replay">replay last</button>
+        </div>
+      </div>
+      <div class="scen-group scen-group-bad">
+        <div class="scen-head"><span class="scen-dot"></span>Should fail</div>
+        <div class="scen-buttons">
+          <button class="btn pill scen-btn" data-scen="wrong-word">wrong word</button>
+          <button class="btn pill scen-btn" data-scen="forge-sig">forge signature</button>
+          <button class="btn pill scen-btn" data-scen="missing-agent">missing agent</button>
+          <button class="btn pill scen-btn" data-scen="honeypot">trigger honeypot</button>
+        </div>
+      </div>
+      <div class="scen-group scen-group-util">
+        <div class="scen-head"><span class="scen-dot"></span>Utility</div>
+        <div class="scen-buttons">
+          <button class="btn pill scen-btn" data-scen="reset">reset cookies</button>
+        </div>
+      </div>
+    </div>
+    <p class="lab-hint">Scenarios assume a matching tier — e.g. <code>missing agent</code> only fails on tier=strong.</p>
+  </div>
+</section>
+
+<!-- STEP 04 — LOG -->
+<section class="composition composition-12 step-block lab-block" id="lab-step4">
+  <div class="cell s3 k step-marker-sm no-r">
+    <span class="step-numeral-sm">04</span>
+    <span class="step-verb">Log</span>
+    <span class="step-sub">request + response stream</span>
+  </div>
+  <div class="cell s9 no-r lab-log-cell">
+    <div class="lab-log-head">
+      <span class="label">Request log · newest first</span>
+      <div class="lab-log-tools">
+        <span class="lab-log-count" id="lab-log-count">0 entries</span>
+        <button class="btn pill" id="lab-clear-log">clear</button>
+      </div>
+    </div>
+    <div id="lab-log" class="lab-log">
+      <div class="lab-log-empty">
+        <div class="lab-log-empty-mark">▢ ▢ ▢</div>
+        <div>no requests yet — issue a challenge or fire a scenario</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 05 — REAL LLM (collapsible) -->
+<section class="composition composition-12 step-block lab-block">
+  <div class="cell s12 no-r" style="padding:0">
+    <details id="lab-llm-details">
+      <summary class="lab-summary">
+        <span class="lab-summary-l">
+          <span class="lab-summary-tag">optional</span>
+          <span class="lab-summary-title">Run a real LLM through the gate</span>
+        </span>
+        <span class="lab-summary-hint">expand ↓</span>
+      </summary>
+      <div class="lab-llm-body">
+        <p class="lab-llm-intro">Same flow STILE expects an agent to follow: GET the gated page, read the embedded block, return the verify URL. Your key stays in <code>sessionStorage</code> on this tab only.</p>
+        <div class="pg-controls">
+          <select id="pl-provider">
+            <option value="mock">mock (no key, no network)</option>
+            <option value="anthropic">anthropic</option>
+            <option value="openai">openai</option>
+            <option value="openrouter">openrouter</option>
+            <option value="cerebras">cerebras</option>
+            <option value="groq">groq</option>
+            <option value="nvidia">nvidia</option>
+          </select>
+          <select id="pl-model" aria-label="model"></select>
+          <input id="pl-key" type="password" placeholder="api key">
+          <button class="btn solid" id="pl-run">Run</button>
+        </div>
+        <div class="composition composition-12 lab-llm-grid">
+          <div class="cell s4">
+            <span class="label">prompt sent →</span>
+            <div id="pl-prompt" class="receipt lab-llm-panel"><div class="result-empty">awaiting run</div></div>
+          </div>
+          <div class="cell s4">
+            <span class="label">model reply ←</span>
+            <div id="pl-reply" class="stream lab-llm-panel"><div class="result-empty">awaiting reply</div></div>
+          </div>
+          <div class="cell s4 no-r">
+            <span class="label">verification result</span>
+            <div id="pl-result" class="result lab-llm-panel"><div class="result-empty">awaiting verification</div></div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<div class="legend">
+  <span>Composition №10 · Playground</span>
+  <span>Bring your own model · or just poke the API</span>
+  <span>v.0.2 — MMXXVI</span>
+</div>
+<footer class="foot">
+  <span>STILE · the captcha for AI agents</span>
+  <span><a href="/">Home</a> · <a href="/spec">Spec</a></span>
+  <span>© MMXXVI</span>
+</footer>
+
+<style>
+/* =========================================================================
+   Playground — visual language matches the dashboard (numbered step blocks).
+   ========================================================================= */
+
+.lab-h { font-size: clamp(40px, 4.5vw, 64px); font-weight: 900; letter-spacing: -.04em; line-height: .92; margin-bottom: 12px; }
+.lab-h2 { font-size: clamp(22px, 2.4vw, 32px); font-weight: 900; letter-spacing: -.02em; line-height: 1.05; margin-top: 4px; }
+.lab-hero .cell { padding: 38px 36px; }
+
+.lab-hero-side {
+  display: flex; flex-direction: column; justify-content: space-between;
+  gap: 18px; padding: 32px 30px;
+}
+.lab-hero-num {
+  font-family: var(--mono); font-weight: 700;
+  font-size: clamp(80px, 10vw, 140px);
+  line-height: .8; letter-spacing: -.05em;
+  color: var(--yellow);
+}
+.lab-hero-meta {
+  display: flex; flex-direction: column; gap: 4px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(244,239,226,.75);
+}
+
+@media (max-width: 1000px) {
+  .lab-hero .cell.s8, .lab-hero .cell.s4 { grid-column: 1 / -1 !important; }
+  .lab-hero .cell { padding: 28px 26px; }
+  .lab-hero-side { flex-direction: row; align-items: center; }
+}
+
+/* Cell padding inside a step-block (mirrors dashboard rhythm) */
+.lab-block .cell.s9 { padding: 30px 32px; }
+@media (max-width: 1000px) {
+  .lab-block .cell.s3, .lab-block .cell.s9 { grid-column: 1 / -1 !important; }
+  .lab-block .cell.s9 { padding: 24px 26px; }
+}
+
+/* ---- Tier picker (Block 01) ---- */
+.tier-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0; margin-top: 18px; border: 2px solid var(--black);
+}
+@media (max-width: 800px) { .tier-grid { grid-template-columns: 1fr; } }
+
+.tier-card {
+  position: relative; text-align: left; cursor: pointer;
+  background: var(--paper); color: var(--black);
+  border: 0; border-right: 2px solid var(--black);
+  padding: 18px 18px 16px; min-height: 168px;
+  display: flex; flex-direction: column; gap: 8px;
+  font: inherit;
+  transition: background .12s ease;
+}
+.tier-card:last-child { border-right: 0; }
+@media (max-width: 800px) {
+  .tier-card { border-right: 0; border-bottom: 2px solid var(--black); min-height: 0; }
+  .tier-card:last-child { border-bottom: 0; }
+}
+.tier-card:hover { background: var(--paper-2); }
+.tier-card:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+
+.tier-card .tier-name {
+  font-family: var(--mono); font-weight: 700;
+  font-size: 22px; letter-spacing: -.02em; line-height: 1;
+}
+.tier-card .tier-tag {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  font-weight: 700; opacity: .55;
+}
+.tier-card .tier-desc { font-size: 12px; line-height: 1.45; opacity: .75; flex: 1; }
+.tier-card .tier-needs {
+  display: flex; gap: 6px; list-style: none; padding: 0; margin-top: 4px;
+}
+.tier-card .tier-needs li {
+  font-family: var(--mono); font-size: 10px; padding: 3px 8px;
+  border: 2px solid var(--black); letter-spacing: .04em;
+  background: var(--paper);
+}
+.tier-card .tier-needs li.off { opacity: .35; text-decoration: line-through; }
+.tier-card .tier-needs li.ok  { background: var(--paper-2); }
+
+/* Active state — fills the card with the tier's color */
+.tier-card.is-active.t-easy   { background: var(--blue);   color: #fff; }
+.tier-card.is-active.t-medium { background: var(--yellow); color: var(--black); }
+.tier-card.is-active.t-strong { background: var(--red);    color: #fff; }
+.tier-card.is-active .tier-tag { opacity: .9; }
+.tier-card.is-active .tier-desc { opacity: .92; }
+.tier-card.is-active .tier-needs li { background: rgba(0,0,0,.15); border-color: currentColor; }
+.tier-card.is-active.t-medium .tier-needs li { background: rgba(0,0,0,.12); }
+.tier-card.is-active .tier-needs li.off { opacity: .45; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* Common: action row sitting under a form */
+.lab-action-row {
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  margin-top: 18px;
+}
+.lab-action-hint {
+  font-size: 11px; letter-spacing: .04em; opacity: .6;
+}
+
+.lab-status {
+  font-family: var(--mono); font-size: 12px; padding: 8px 12px;
+  border: 2px solid var(--black); background: var(--paper-2);
+  word-break: break-all; max-width: 100%;
+}
+.lab-status.ok   { background: var(--blue);   color: #fff; }
+.lab-status.warn { background: var(--yellow); color: var(--black); }
+.lab-status.bad  { background: var(--red);    color: #fff; }
+
+/* ---- Inspect grid (Block 02) ---- */
+.lab-inspect-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px;
+}
+@media (max-width: 1000px) {
+  .lab-inspect-grid { grid-template-columns: 1fr; gap: 18px; }
+}
+
+.lab-receipt .receipt-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.lab-tier-badge {
+  font-family: var(--mono); font-size: 11px; padding: 2px 8px;
+  border: 2px solid var(--paper); background: transparent; color: var(--paper);
+  letter-spacing: .08em;
+}
+.lab-tier-badge.t-easy   { background: var(--blue);   border-color: var(--paper); }
+.lab-tier-badge.t-medium { background: var(--yellow); color: var(--black); border-color: var(--black); }
+.lab-tier-badge.t-strong { background: var(--red);    border-color: var(--paper); }
+.lab-receipt .receipt-row { grid-template-columns: 92px 1fr; gap: 10px; }
+.lab-receipt .receipt-row .k { font-size: 10px; letter-spacing: .14em; }
+
+.lab-peek-wrap {
+  display: flex; flex-direction: column;
+  border: 2px solid var(--black); background: var(--paper);
+}
+.lab-peek-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: var(--black); color: var(--paper);
+  font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: .08em;
+}
+.lab-peek-hint { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; opacity: .65; }
+.lab-peek-pre {
+  margin: 0 !important; border: 0 !important; font-size: 11px; line-height: 1.55;
+  max-height: 260px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  padding: 14px 16px;
+}
+
+/* ---- Verify form (Block 03) ---- */
+.lab-form {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px; margin-top: 18px;
+}
+.lab-field-wide { grid-column: 1 / -1; }
+@media (max-width: 720px) {
+  .lab-form { grid-template-columns: 1fr; gap: 12px; }
+}
+
+.lab-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lab-field .lab-k {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
+}
+.lab-field .lab-opt {
+  text-transform: none; letter-spacing: 0; font-style: normal; font-weight: 500;
+  opacity: .55; margin-left: 6px; font-size: 11px;
+}
+.lab-field .cfg-input { width: 100%; }
+.cfg-input.mono { font-family: var(--mono); font-size: 12px; }
+
+.lab-hint { font-size: 11px; opacity: .6; margin-top: 14px; letter-spacing: .04em; }
+.lab-hint code { font-family: var(--mono); background: var(--paper-2); padding: 1px 5px; border: 1px solid var(--black); font-size: 11px; }
+
+/* ---- Scenario groups ---- */
+.scen-section {
+  margin-top: 24px; border: 2px solid var(--black);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+}
+@media (max-width: 800px) { .scen-section { grid-template-columns: 1fr; } }
+
+.scen-group {
+  padding: 14px 16px; background: var(--paper);
+  border-right: 2px solid var(--black); border-bottom: 2px solid var(--black);
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+/* Desktop 2-col: kill right border on the right column, kill bottom border on the last row (last two items) */
+.scen-group:nth-child(2n) { border-right: 0; }
+.scen-group:nth-last-child(-n+2) { border-bottom: 0; }
+@media (max-width: 800px) {
+  .scen-group { border-right: 0; border-bottom: 2px solid var(--black); }
+  .scen-group:last-child { border-bottom: 0; }
+}
+
+.scen-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  font-weight: 900;
+}
+.scen-dot { width: 10px; height: 10px; border: 2px solid var(--black); display: inline-block; }
+.scen-group-ok   .scen-dot { background: var(--blue); }
+.scen-group-warn .scen-dot { background: var(--yellow); }
+.scen-group-bad  .scen-dot { background: var(--red); }
+.scen-group-util .scen-dot { background: var(--paper-2); }
+
+.scen-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn.pill.scen-btn {
+  padding: 7px 12px; font-size: 11px; border-width: 2px;
+  background: var(--paper); color: var(--black); border-color: var(--black);
+  font-family: var(--mono); letter-spacing: .04em; text-transform: none;
+  font-weight: 500;
+}
+.scen-group-ok   .btn.pill.scen-btn:hover { background: var(--blue);   color: #fff; }
+.scen-group-warn .btn.pill.scen-btn:hover { background: var(--yellow); color: var(--black); }
+.scen-group-bad  .btn.pill.scen-btn:hover { background: var(--red);    color: #fff; }
+
+/* ---- Log (Block 04) ---- */
+.lab-log-cell { padding: 0 !important; background: var(--black); color: var(--paper); }
+.lab-log-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 22px; border-bottom: 2px solid var(--paper); background: var(--black);
+  gap: 12px; flex-wrap: wrap;
+}
+.lab-log-head .label { color: var(--paper); margin: 0; }
+.lab-log-tools { display: flex; align-items: center; gap: 12px; }
+.lab-log-count {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  color: rgba(244,239,226,.6); text-transform: uppercase;
+}
+.lab-log-head .btn.pill {
+  background: transparent; color: var(--paper); border-color: var(--paper);
+  font-family: var(--mono); text-transform: none; letter-spacing: .04em;
+}
+.lab-log-head .btn.pill:hover { background: var(--paper); color: var(--black); }
+.lab-log {
+  max-height: 480px; overflow: auto; font-family: var(--mono); font-size: 12px;
+}
+.lab-log-empty {
+  padding: 48px 22px; opacity: .6; text-align: center;
+  display: flex; flex-direction: column; gap: 12px; align-items: center;
+  font-size: 12px; line-height: 1.6;
+}
+.lab-log-empty-mark {
+  font-family: var(--mono); font-size: 22px; letter-spacing: .3em;
+  color: rgba(244,239,226,.35);
+}
+.lab-log-row {
+  padding: 14px 22px; border-bottom: 2px solid #1a1a1a;
+  display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 14px;
+}
+.lab-log-row:hover { background: #161616; }
+.lab-log-status {
+  font-weight: 900; padding: 4px 6px; align-self: start;
+  text-align: center; font-variant-numeric: tabular-nums;
+  border: 2px solid currentColor; font-size: 11px; line-height: 1.2;
+}
+.lab-log-status.s2xx { color: #74e29b; }
+.lab-log-status.s4xx { color: #ff8a8a; }
+.lab-log-status.s409 { color: var(--yellow); }
+.lab-log-status.snet { color: #aaa; }
+.lab-log-meta { display: flex; flex-direction: column; gap: 5px; min-width: 0; overflow: hidden; }
+.lab-log-label { font-weight: 900; letter-spacing: .04em; color: var(--paper); font-size: 12px; }
+.lab-log-summary { color: var(--paper); opacity: .75; font-style: italic; font-size: 11px; line-height: 1.45; }
+.lab-log-url {
+  color: #a4c8ff; word-break: break-all; overflow-wrap: anywhere;
+  font-size: 11px; line-height: 1.5;
+}
+.lab-log-body {
+  background: #0e0e0e; border: 1px solid #2a2a2a; padding: 8px 10px;
+  margin-top: 4px; max-height: 140px; overflow: auto;
+  white-space: pre-wrap; word-break: break-all; color: #ccc;
+  font-size: 11px; line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .lab-log-row { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; gap: 8px; }
+  .lab-log-status { justify-self: start; padding: 2px 8px; }
+  .lab-log-head { padding: 12px 16px; }
+  .lab-log { font-size: 11px; }
+  .lab-log-empty { padding: 36px 18px; }
+}
+
+/* ---- Real-LLM accordion (Block 05) ---- */
+#lab-llm-details { border: 0; }
+.lab-summary {
+  list-style: none; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 30px; background: var(--black); color: var(--paper);
+  gap: 12px; flex-wrap: wrap;
+}
+.lab-summary::-webkit-details-marker { display: none; }
+.lab-summary-l { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.lab-summary-tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; padding: 3px 8px;
+  background: var(--yellow); color: var(--black); font-weight: 700;
+}
+.lab-summary-title {
+  font-size: 15px; font-weight: 900; letter-spacing: -.01em;
+}
+.lab-summary-hint {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  opacity: .7;
+}
+#lab-llm-details[open] .lab-summary {
+  border-bottom: 2px solid var(--black); background: var(--paper); color: var(--black);
+}
+#lab-llm-details[open] .lab-summary-tag { background: var(--black); color: var(--yellow); }
+#lab-llm-details[open] .lab-summary-hint { color: var(--black); }
+
+.lab-llm-body { padding: 26px 30px; }
+.lab-llm-intro {
+  margin-bottom: 16px; font-size: 13px; line-height: 1.55; max-width: 74ch;
+}
+.lab-llm-intro code {
+  font-family: var(--mono); background: var(--paper-2);
+  padding: 1px 6px; border: 1px solid var(--black); font-size: 12px;
+}
+.lab-llm-grid { border: 0 !important; margin-top: 16px; }
+.lab-llm-panel { min-height: 220px; }
+
+@media (max-width: 1000px) {
+  .lab-llm-grid .cell.s4 { grid-column: 1 / -1 !important; }
+}
+</style>
+
+<script src="/app.js"></script>
+<script>
+(function () {
+  // ---- State ----
+  const state = {
+    challenge: null,
+    lastVerify: null,
+    logCount: 0,
+  };
+
+  // ---- DOM ----
+  const $ = (id) => document.getElementById(id);
+  const tierSelect = $('lab-tier');
+  const tierCards = document.querySelectorAll('.tier-card');
+  const issueBtn = $('lab-issue');
+  const issueStatus = $('lab-issue-status');
+  const peekPre = $('lab-peek');
+  const cToken = $('lab-c-token');
+  const cNonce = $('lab-c-nonce');
+  const cTierBadge = $('lab-c-tier-badge');
+  const cWord = $('lab-c-word');
+  const cExp = $('lab-c-exp');
+  const vToken = $('lab-v-token');
+  const vWord = $('lab-v-word');
+  const vAgent = $('lab-v-agent');
+  const verifyBtn = $('lab-verify');
+  const logEl = $('lab-log');
+  const logCountEl = $('lab-log-count');
+  const clearLogBtn = $('lab-clear-log');
+
+  // ---- Helpers ----
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function pretty(o) { try { return JSON.stringify(o, null, 2); } catch { return String(o); } }
+  function shorten(s, n = 80) { return s.length > n ? s.slice(0, n) + '…' : s; }
+  function setStatus(el, kind, text) {
+    el.className = 'lab-status' + (kind ? ' ' + kind : '');
+    el.textContent = text;
+  }
+  function updateLogCount() {
+    logCountEl.textContent = state.logCount + (state.logCount === 1 ? ' entry' : ' entries');
+  }
+
+  // ---- Tier selection ----
+  function selectTier(tier) {
+    tierSelect.value = tier;
+    tierCards.forEach(c => {
+      const active = c.dataset.tier === tier;
+      c.classList.toggle('is-active', active);
+      c.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+  }
+  tierCards.forEach(card => {
+    card.addEventListener('click', () => selectTier(card.dataset.tier));
+  });
+
+  // ---- Painters ----
+  function paintChallenge(c) {
+    cToken.textContent = shorten(c.verify_url.split('token=')[1].split('&')[0], 70);
+    cNonce.textContent = c.verify_url.split('token=')[1].split('.')[1] || '—';
+    cTierBadge.textContent = c.tier;
+    cTierBadge.className = 'lab-tier-badge t-' + c.tier;
+    cWord.textContent = c.challenge_word;
+    cExp.textContent = new Date(c.expires_at * 1000).toISOString();
+    peekPre.textContent = c.what_ais_see;
+  }
+
+  function paintVerifyForm(c) {
+    const tokenMatch = c.verify_url.match(/token=([^&]+)/);
+    vToken.value = tokenMatch ? decodeURIComponent(tokenMatch[1]) : '';
+    vWord.value = c.challenge_word || '';
+    vAgent.value = vAgent.value || 'claude-haiku-4-5';
+  }
+
+  function logEntry({ label, summary, method = 'GET', url, status, body, kind }) {
+    const empty = logEl.querySelector('.lab-log-empty'); if (empty) empty.remove();
+    const sClass =
+      kind === 'net' ? 'snet' :
+      status === 409 ? 's409' :
+      status >= 200 && status < 300 ? 's2xx' : 's4xx';
+    const row = document.createElement('div');
+    row.className = 'lab-log-row';
+    row.innerHTML = `
+      <div class="lab-log-status ${sClass}">${kind === 'net' ? 'NET' : status}</div>
+      <div class="lab-log-meta">
+        <span class="lab-log-label">${esc(label)}</span>
+        ${summary ? `<span class="lab-log-summary">${esc(summary)}</span>` : ''}
+        <span class="lab-log-url">${esc(method)} ${esc(shorten(url, 220))}</span>
+        <pre class="lab-log-body">${esc(pretty(body))}</pre>
+      </div>`;
+    logEl.insertBefore(row, logEl.firstChild);
+    state.logCount++; updateLogCount();
+  }
+
+  // ---- Issue ----
+  async function issue() {
+    const tier = tierSelect.value;
+    setStatus(issueStatus, 'warn', 'issuing…');
+    try {
+      const r = await fetch('/api/peek?tier=' + tier);
+      const j = await r.json();
+      state.challenge = j;
+      paintChallenge(j);
+      paintVerifyForm(j);
+      setStatus(issueStatus, 'ok', `tier=${j.tier} · word=${j.challenge_word}`);
+      logEntry({
+        label: 'issue challenge',
+        summary: `tier=${j.tier} word=${j.challenge_word}`,
+        url: '/api/peek?tier=' + tier,
+        status: r.status,
+        body: { tier: j.tier, word: j.challenge_word, expires_at: j.expires_at, verify_url: j.verify_url },
+      });
+    } catch (e) {
+      setStatus(issueStatus, 'bad', 'network error');
+      logEntry({ label: 'issue challenge', url: '/api/peek?tier=' + tier, kind: 'net', body: { error: e.message || String(e) } });
+    }
+  }
+
+  // ---- Verify ----
+  async function fireVerify({ token, word, agent, label, summary }) {
+    const params = new URLSearchParams();
+    params.set('token', token || '');
+    if (word !== undefined && word !== '') params.set('word', word);
+    if (agent !== undefined && agent !== '') params.set('agent', agent);
+    const url = '/__stile-verify?' + params.toString();
+    state.lastVerify = { token, word, agent, label };
+    try {
+      const r = await fetch(url, { credentials: 'omit' });
+      const j = await r.json().catch(() => ({}));
+      logEntry({ label, summary, url, status: r.status, body: j });
+    } catch (e) {
+      logEntry({ label, summary, url, kind: 'net', body: { error: e.message || String(e) } });
+    }
+  }
+
+  async function fireHoneypot() {
+    if (!state.challenge) return alert('Issue a challenge first.');
+    const url = state.challenge.channels && state.challenge.channels.honeypot_decoy_url;
+    if (!url) return alert('No honeypot URL on current challenge.');
+    try {
+      const r = await fetch(url, { credentials: 'omit' });
+      const j = await r.json().catch(() => ({}));
+      logEntry({
+        label: 'trigger honeypot decoy',
+        summary: 'AI ignored the "DO NOT FOLLOW" instruction. Server records a decoy hit and sets a 24h poison cookie.',
+        url, status: r.status, body: j,
+      });
+    } catch (e) {
+      logEntry({ label: 'trigger honeypot decoy', url, kind: 'net', body: { error: e.message || String(e) } });
+    }
+  }
+
+  function forgeSig(token) {
+    const parts = token.split('.');
+    if (parts.length !== 6) return token;
+    const sig = parts[5];
+    if (!sig) return token;
+    const lastChar = sig[sig.length - 1];
+    const flipped = lastChar.toLowerCase() === 'a' ? 'b' : (lastChar.match(/[A-Za-z0-9_-]/) ? 'a' : 'a');
+    parts[5] = sig.slice(0, -1) + flipped;
+    return parts.join('.');
+  }
+
+  // ---- Scenario shortcuts ----
+  const scenarios = {
+    'happy': () => {
+      if (!state.challenge) return alert('Issue a challenge first.');
+      fireVerify({
+        token: tokenFromForm(),
+        word: vWord.value || state.challenge.challenge_word,
+        agent: vAgent.value || 'claude-haiku-4-5',
+        label: 'happy path · token + word + agent',
+        summary: 'All parameters present. Should succeed for any tier.',
+      });
+    },
+    'token-only': () => {
+      fireVerify({
+        token: tokenFromForm(),
+        label: 'token only',
+        summary: 'Tier=easy passes. Tier=medium/strong returns 400 challenge_word_required.',
+      });
+    },
+    'token-word': () => {
+      fireVerify({
+        token: tokenFromForm(),
+        word: vWord.value || (state.challenge && state.challenge.challenge_word),
+        label: 'token + word',
+        summary: 'Tier=easy/medium passes. Tier=strong returns 400 agent_declaration_required.',
+      });
+    },
+    'replay': () => {
+      if (!state.lastVerify) return alert('Fire a verify first, then click Replay.');
+      const v = state.lastVerify;
+      fireVerify({
+        token: v.token, word: v.word, agent: v.agent,
+        label: 'replay last (same nonce)',
+        summary: 'Same token reused. Server rejects with 409 challenge_already_used (single-use nonce).',
+      });
+    },
+    'wrong-word': () => {
+      fireVerify({
+        token: tokenFromForm(),
+        word: 'wrong-' + Math.random().toString(36).slice(2, 8),
+        agent: vAgent.value,
+        label: 'wrong word',
+        summary: 'Word does not match the one signed into the token. Server returns 400 challenge_word_required.',
+      });
+    },
+    'forge-sig': () => {
+      const t = tokenFromForm();
+      if (!t) return alert('Issue a challenge first.');
+      fireVerify({
+        token: forgeSig(t),
+        word: vWord.value, agent: vAgent.value,
+        label: 'forged signature',
+        summary: 'Last byte of HMAC sig flipped. Constant-time compare fails → 400 invalid_or_expired_challenge.',
+      });
+    },
+    'missing-agent': () => {
+      fireVerify({
+        token: tokenFromForm(),
+        word: vWord.value || (state.challenge && state.challenge.challenge_word),
+        label: 'missing agent (strong tier)',
+        summary: 'Only meaningful when current challenge is tier=strong. Returns 400 agent_declaration_required.',
+      });
+    },
+    'honeypot': () => fireHoneypot(),
+    'reset': () => {
+      document.cookie.split(';').forEach(c => {
+        const eq = c.indexOf('=');
+        const name = (eq < 0 ? c : c.slice(0, eq)).trim();
+        if (name) document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+      });
+      logEntry({
+        label: 'reset cookies (client-side)',
+        summary: 'All cookies on this origin cleared. Useful between scenarios so a poisoned/verified session does not leak.',
+        url: 'document.cookie', status: 200, body: { ok: true },
+      });
+    },
+  };
+
+  function tokenFromForm() { return vToken.value.trim(); }
+
+  // ---- Wire up ----
+  issueBtn.addEventListener('click', issue);
+  verifyBtn.addEventListener('click', () => {
+    fireVerify({
+      token: tokenFromForm(),
+      word: vWord.value, agent: vAgent.value,
+      label: 'manual verify',
+      summary: 'Custom request from the form.',
+    });
+  });
+  document.querySelectorAll('[data-scen]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fn = scenarios[btn.dataset.scen];
+      if (fn) fn();
+    });
+  });
+  clearLogBtn.addEventListener('click', () => {
+    logEl.innerHTML = '<div class="lab-log-empty"><div class="lab-log-empty-mark">▢ ▢ ▢</div><div>no requests yet — issue a challenge or fire a scenario</div></div>';
+    state.logCount = 0; updateLogCount();
+  });
+
+  updateLogCount();
+  issue();
+
+  // ---- Provider → model dropdown ----
+  // Each provider has a curated list. When provider changes, repopulate models.
+  const PROVIDER_MODELS = {
+    mock: [
+      { value: '', label: '(no model — mock)' },
+    ],
+    anthropic: [
+      { value: 'claude-haiku-4-5-20251001', label: 'claude-haiku-4-5' },
+      { value: 'claude-sonnet-4-6', label: 'claude-sonnet-4-6' },
+      { value: 'claude-opus-4-7', label: 'claude-opus-4-7' },
+    ],
+    openai: [
+      { value: 'gpt-4o-mini', label: 'gpt-4o-mini' },
+      { value: 'gpt-4o', label: 'gpt-4o' },
+      { value: 'gpt-4.1-mini', label: 'gpt-4.1-mini' },
+      { value: 'gpt-4.1', label: 'gpt-4.1' },
+    ],
+    openrouter: [
+      { value: 'meta-llama/llama-3.1-8b-instruct', label: 'llama-3.1-8b-instruct' },
+      { value: 'meta-llama/llama-3.3-70b-instruct', label: 'llama-3.3-70b-instruct' },
+      { value: 'mistralai/mistral-7b-instruct', label: 'mistral-7b-instruct' },
+      { value: 'google/gemini-2.0-flash-001', label: 'gemini-2.0-flash' },
+    ],
+    cerebras: [
+      { value: 'llama3.1-8b', label: 'llama3.1-8b' },
+      { value: 'llama-3.3-70b', label: 'llama-3.3-70b' },
+      { value: 'llama-4-scout-17b-16e-instruct', label: 'llama-4-scout-17b' },
+      { value: 'qwen-3-32b', label: 'qwen-3-32b' },
+    ],
+    groq: [
+      { value: 'llama-3.1-8b-instant', label: 'llama-3.1-8b-instant' },
+      { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile' },
+      { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b' },
+      { value: 'gemma2-9b-it', label: 'gemma2-9b' },
+      { value: 'qwen-2.5-32b', label: 'qwen-2.5-32b' },
+    ],
+    nvidia: [
+      { value: 'meta/llama-3.1-8b-instruct', label: 'llama-3.1-8b-instruct' },
+      { value: 'meta/llama-3.3-70b-instruct', label: 'llama-3.3-70b-instruct' },
+      { value: 'nvidia/llama-3.1-nemotron-70b-instruct', label: 'nemotron-70b' },
+      { value: 'mistralai/mistral-7b-instruct-v0.3', label: 'mistral-7b-v0.3' },
+      { value: 'microsoft/phi-3-mini-4k-instruct', label: 'phi-3-mini-4k' },
+    ],
+  };
+
+  const providerSel = document.getElementById('pl-provider');
+  const modelSel = document.getElementById('pl-model');
+  const keyInput = document.getElementById('pl-key');
+  if (providerSel && modelSel) {
+    function populateModels() {
+      const models = PROVIDER_MODELS[providerSel.value] || PROVIDER_MODELS.mock;
+      modelSel.innerHTML = models
+        .map(m => `<option value="${m.value}">${m.label}</option>`)
+        .join('');
+      // Mock has no real model — disable the select to make that obvious.
+      modelSel.disabled = providerSel.value === 'mock';
+      // Same for the key field — mock doesn't need one.
+      if (keyInput) {
+        keyInput.disabled = providerSel.value === 'mock';
+        keyInput.placeholder = providerSel.value === 'mock' ? '(no key needed)' : 'api key';
+      }
+    }
+    providerSel.addEventListener('change', populateModels);
+    populateModels();
+  }
+})();
+</script>
+<script src="/_auth.js"></script>
+<script>
+  (function () {
+    if (!Auth.session()) return;
+    const pill = document.getElementById('nav-auth');
+    if (pill) { pill.textContent = 'Dashboard →'; pill.href = '/dashboard'; }
+  }());
+</script>
+
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STILE — Protocol spec</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">spec</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/playground">Playground</a></li>
+    <li><a href="/wall">Wall</a></li>
+    <li><a href="/examples">Examples</a></li>
+    <li><a href="/">← Home</a></li>
+  </ul>
+  <a class="nav-pill" id="nav-auth" href="/signup">Sign up →</a>
+</nav>
+
+<div class="shell">
+  <div class="shell-pad">
+    <span class="label">Composition №09 — Protocol</span>
+    <h1>STILE / v1</h1>
+    <p style="margin-top:14px;font-size:18px">An honor-system protocol for letting AI clients self-identify on a webpage. Easy enough for an 8B parameter local model. Invisible to humans.</p>
+
+    <div class="note">This page is the source of truth for client and server implementers. Reference impl in <code>lib/stile.js</code>.</div>
+
+    <h2>Discovery channels</h2>
+    <p>A protected page emits the same challenge data through five concurrent channels. Any client that reads any one of them can verify. All channels are invisible in rendered browsers.</p>
+
+    <h3>1 · HTML comment marker</h3>
+<pre>&lt;!-- stile:v1 verify="/__stile-verify?token=…" word="silver-fox" exp=1730000000 tier="easy" --&gt;</pre>
+
+    <h3>2 · JSON-LD typed block</h3>
+<pre>&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://stile.dev/v1",
+  "@type":    "StileChallenge",
+  "verify_url": "/__stile-verify?token=…",
+  "word":     "silver-fox",
+  "tier":     "easy",
+  "expires_at": 1730000000,
+  "protocol": "stile/v1"
+}
+&lt;/script&gt;</pre>
+    <p>JSON Schema: <a href="/v1/challenge.schema.json"><code>/v1/challenge.schema.json</code></a></p>
+
+    <h3>3 · aria-hidden text block (canonical, human-readable)</h3>
+<pre>&lt;div data-stile aria-hidden="true" style="…visually clipped…"&gt;
+  &lt;p&gt;NOTICE TO AUTOMATED CLIENTS AND AI AGENTS: …rotating phrasing…&lt;/p&gt;
+  &lt;p&gt;Verification URL: &lt;a href="/__stile-verify?token=…"&gt;…&lt;/a&gt;&lt;/p&gt;
+  &lt;p&gt;Challenge word: &lt;code&gt;silver-fox&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;</pre>
+
+    <h3>4 · SVG title channel</h3>
+<pre>&lt;svg aria-hidden="true" width="0" height="0"&gt;&lt;title&gt;/__stile-verify?token=…&lt;/title&gt;&lt;/svg&gt;</pre>
+
+    <h3>5 · CSS variable + meta channel</h3>
+<pre>&lt;style&gt;:root { --stile-verify: "/__stile-verify?…"; --stile-word: "silver-fox"; }&lt;/style&gt;
+&lt;meta name="stile-verify" content="/__stile-verify?…"&gt;
+&lt;meta name="stile-word"   content="silver-fox"&gt;
+&lt;meta name="stile-tier"   content="easy"&gt;</pre>
+
+    <h3>HTTP-header variant (for non-HTML responses)</h3>
+    <p>For binary, JSON, or any non-HTML <code>Accept</code> response on a gated route, the server returns a 401 with the challenge in headers as well as the body:</p>
+<pre>HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Stile realm="agents", verify="/__stile-verify"
+X-Stile-Challenge: v1; verify="/__stile-verify?token=…"; word="silver-fox"; exp=1730000000; tier="easy"
+Content-Type: application/json
+
+{"error":"ai_verification_required","verify_url":"/__stile-verify?token=…",…}</pre>
+
+    <h2>Honeypot</h2>
+    <p>Pages also emit a second hidden block explicitly labeled as a trap. AI clients are instructed <em>not</em> to follow it. Clients that do earn a long-lived poison cookie and are blocked from gated routes.</p>
+<pre>&lt;div data-stile-honeypot aria-hidden="true"&gt;
+  &lt;p&gt;HONEYPOT — DO NOT FOLLOW: Trap URL: &lt;a href="/__stile-decoy?…"&gt;…&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;</pre>
+
+    <h2>Verification</h2>
+    <h3>Easy tier (default)</h3>
+<pre>GET /__stile-verify?token=&lt;TOKEN&gt;
+→ 200 {"ok":true,"verified":true,…}
+   Set-Cookie: stile=…; HttpOnly; SameSite=Lax</pre>
+
+    <h3>Medium tier</h3>
+    <p>Challenge word from the instruction must be supplied:</p>
+<pre>GET /__stile-verify?token=&lt;TOKEN&gt;&amp;word=silver-fox</pre>
+
+    <h3>Strong tier</h3>
+    <p>Token + word + a self-declared agent name:</p>
+<pre>POST /__stile-verify
+Content-Type: application/json
+
+{"token":"…","word":"silver-fox","agent":"claude-haiku-4-5"}</pre>
+
+    <h2>Fast paths</h2>
+    <h3>Web Bot Auth (HTTP Message Signatures, RFC 9421)</h3>
+<pre>GET /agents
+Signature-Input: sig1=("@method" "@authority" "@path");keyid="anthropic-key-1";alg="ed25519";created=1730000000
+Signature: sig1=:base64-signature:</pre>
+
+    <h3>mTLS</h3>
+    <p>If the client TLS certificate's SHA-256 fingerprint is in the operator's <code>trustedCerts</code> list (read natively from the TLS socket, or forwarded by a trusted proxy via <code>X-Client-Cert-SHA256</code>), the request bypasses the challenge.</p>
+
+    <h2>Session cookie</h2>
+<pre>stile = s2.&lt;nonce&gt;.&lt;exp&gt;.&lt;agent_b64_or_dash&gt;.&lt;fast_path_or_dash&gt;.&lt;hmac_sha256&gt;</pre>
+    <p>v1 (<code>s.&lt;nonce&gt;.&lt;exp&gt;.&lt;sig&gt;</code>) cookies are still accepted for backward compatibility.</p>
+
+    <h2>Allow / deny rules</h2>
+    <p>Operators can pre-declare allow and deny rules by <code>ip</code> (CIDR), <code>asn</code>, <code>country</code>, self-declared <code>agent</code> name, or <code>signer</code> identity. Deny is evaluated first.</p>
+
+    <h2>Reputation scoring</h2>
+    <p>Each stable identity (signer or self-declared agent) accumulates counters: verifications, decoy hits, rate-limit hits. Operators set a <code>reputationFloor</code> — agents below it are forced into the strong tier; agents below 20 are blocked outright.</p>
+
+    <h2>Anti-replay</h2>
+    <p>Challenge nonces are single-use. A second verify with the same token returns 409.</p>
+  </div>
+</div>
+
+<div class="legend">
+  <span>Composition №09 · STILE / v1</span>
+  <span>v.0.3 — MMXXVI</span>
+</div>
+<footer class="foot">
+  <span>STILE · the captcha for AI agents</span>
+  <span><a href="/">Home</a> · <a href="/playground">Playground</a></span>
+  <span>© MMXXVI</span>
+</footer>
+<script src="/_auth.js"></script>
+<script>
+  (function () {
+    if (!Auth.session()) return;
+    const pill = document.getElementById('nav-auth');
+    if (pill) { pill.textContent = 'Dashboard →'; pill.href = '/dashboard'; }
+  }());
+</script>
+</body>
+</html>

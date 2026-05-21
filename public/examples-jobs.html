@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hire Loop — a job board built for AI recruiters</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root { --hl-bg: #ffffff; --hl-ink: #0a0a0a; --hl-muted: #5e6770; --hl-line: #e5e7eb; --hl-pop: #2563eb; --hl-yellow: #facc15; --hl-green: #16a34a; }
+body { background: var(--hl-bg); color: var(--hl-ink); font-family: 'Inter', system-ui, sans-serif; }
+.hl-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px; border-bottom: 1px solid var(--hl-line); background: var(--hl-bg);
+  position: sticky; top: 0; z-index: 5;
+}
+.hl-brand {
+  font-size: 19px; font-weight: 800; letter-spacing: -.02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.hl-logo {
+  width: 22px; height: 22px; background: var(--hl-ink); display: inline-block;
+  position: relative;
+}
+.hl-logo::after {
+  content: ''; position: absolute; inset: 5px; border: 2px solid var(--hl-yellow);
+  border-radius: 50%;
+}
+.hl-nav-links { display: flex; gap: 22px; list-style: none; align-items: center; }
+.hl-nav-links a { color: var(--hl-ink); text-decoration: none; font-size: 14px; font-weight: 500; }
+.hl-nav-links a:hover { color: var(--hl-pop); }
+.hl-cta {
+  background: var(--hl-ink); color: var(--hl-bg); padding: 8px 14px;
+  text-decoration: none; font-size: 13px; font-weight: 700;
+}
+.hl-pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 9px; border: 1px solid var(--hl-line); background: var(--hl-bg); color: var(--hl-ink);
+  text-decoration: none;
+}
+.hl-pill .dot {
+  display: inline-block; width: 6px; height: 6px; background: var(--hl-pop);
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
+}
+
+.hl-hero {
+  padding: 64px 36px 36px; text-align: center; max-width: 920px; margin: 0 auto;
+}
+.hl-hero h1 {
+  font-size: clamp(40px, 6vw, 76px); font-weight: 900; letter-spacing: -.035em; line-height: 1;
+}
+.hl-hero h1 em { font-style: italic; color: var(--hl-pop); }
+.hl-hero p { color: var(--hl-muted); font-size: 17px; margin-top: 16px; line-height: 1.55; max-width: 56ch; margin-inline: auto; }
+.hl-hero-stats {
+  display: flex; gap: 28px; justify-content: center; margin-top: 28px; flex-wrap: wrap;
+}
+.hl-hero-stats .item .n {
+  font-size: 30px; font-weight: 800; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.hl-hero-stats .item .l {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--hl-muted); margin-top: 2px; font-weight: 600;
+}
+
+.hl-search {
+  max-width: 760px; margin: 0 auto; padding: 0 32px 36px;
+}
+.hl-search-box {
+  display: flex; gap: 0; border: 2px solid var(--hl-ink);
+}
+.hl-search-box input, .hl-search-box select {
+  flex: 1; border: 0; padding: 12px 14px; font-family: inherit; font-size: 14px;
+  background: var(--hl-bg); color: var(--hl-ink); min-width: 0;
+}
+.hl-search-box select { flex: 0 0 auto; border-left: 1px solid var(--hl-line); }
+.hl-search-box button {
+  background: var(--hl-ink); color: var(--hl-bg); border: 0; padding: 12px 18px;
+  font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; letter-spacing: .04em;
+}
+
+.hl-listings {
+  max-width: 980px; margin: 0 auto; padding: 0 32px 40px;
+  display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--hl-line);
+}
+.hl-job {
+  display: grid; grid-template-columns: 60px 1fr auto;
+  gap: 18px; padding: 20px 12px; border-bottom: 1px solid var(--hl-line);
+  align-items: center; cursor: pointer; transition: background .12s ease;
+}
+.hl-job:hover { background: #fafafa; }
+@media (max-width: 700px) {
+  .hl-job { grid-template-columns: 50px 1fr; }
+  .hl-job .hl-job-cta { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
+}
+.hl-job-logo {
+  width: 50px; height: 50px; background: var(--hl-ink); color: var(--hl-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 18px; letter-spacing: -.02em;
+}
+.hl-job-logo.b { background: var(--hl-pop); }
+.hl-job-logo.y { background: var(--hl-yellow); color: var(--hl-ink); }
+.hl-job-logo.g { background: var(--hl-green); }
+
+.hl-job-h { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.hl-job-meta { font-size: 13px; color: var(--hl-muted); margin-top: 2px; }
+.hl-job-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.hl-job-tag {
+  font-size: 11px; padding: 2px 7px; background: #f1f5f9; color: var(--hl-ink);
+  border-radius: 999px; letter-spacing: .04em;
+}
+.hl-job-cta {
+  font-size: 13px; font-weight: 700; color: var(--hl-pop); white-space: nowrap;
+}
+
+.hl-agent {
+  background: var(--hl-ink); color: var(--hl-bg); padding: 56px 36px;
+  margin-top: 0;
+}
+.hl-agent-inner {
+  max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+}
+@media (max-width: 900px) { .hl-agent-inner { grid-template-columns: 1fr; } }
+.hl-agent h2 {
+  font-size: clamp(28px, 4vw, 48px); font-weight: 900; letter-spacing: -.025em; line-height: 1;
+}
+.hl-agent h2 em { font-style: italic; color: var(--hl-yellow); }
+.hl-agent p { color: rgba(255,255,255,.78); font-size: 15px; line-height: 1.6; margin-top: 14px; }
+.hl-agent ul { margin-top: 16px; list-style: none; padding: 0; }
+.hl-agent ul li {
+  padding: 10px 0; border-top: 1px solid rgba(255,255,255,.12); font-size: 14px;
+  display: flex; gap: 10px; align-items: baseline;
+}
+.hl-agent ul li:last-child { border-bottom: 1px solid rgba(255,255,255,.12); }
+.hl-agent ul li b {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--hl-yellow); flex: 0 0 80px;
+}
+.hl-agent pre {
+  font-family: var(--mono); font-size: 12px; line-height: 1.6;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.18);
+  padding: 16px 18px; white-space: pre-wrap; word-break: break-all;
+  color: #d6e8ff;
+}
+
+.hl-foot {
+  padding: 24px 36px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--hl-muted);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  border-top: 1px solid var(--hl-line);
+}
+.hl-foot a { color: var(--hl-pop); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="hl-nav">
+  <div class="hl-brand"><span class="hl-logo"></span>Hire Loop</div>
+  <ul class="hl-nav-links">
+    <li><a href="#">Jobs</a></li>
+    <li><a href="#">Companies</a></li>
+    <li><a href="#">For agents</a></li>
+    <li><a href="#" class="hl-cta">Post a job</a></li>
+  </ul>
+  <a class="hl-pill" href="/examples"><span class="dot"></span>Powered by STILE</a>
+</div>
+
+<section class="hl-hero">
+  <h1>Roles that <em>match</em>.<br>Recruiters that don't <em>spam</em>.</h1>
+  <p>Hire Loop is a job board built so AI recruiting agents can ingest listings honestly. Every machine reader declares itself before pulling the feed — humans get the warm version, bots get the structured one.</p>
+  <div class="hl-hero-stats">
+    <div class="item"><div class="n">8,412</div><div class="l">Live roles</div></div>
+    <div class="item"><div class="n">214</div><div class="l">Verified agents</div></div>
+    <div class="item"><div class="n">11M</div><div class="l">Pulls / month</div></div>
+  </div>
+</section>
+
+<div class="hl-search">
+  <div class="hl-search-box">
+    <input type="text" placeholder="Role, company, or keyword">
+    <select>
+      <option>Anywhere</option>
+      <option>Remote</option>
+      <option>NYC</option>
+      <option>Berlin</option>
+      <option>SF Bay</option>
+    </select>
+    <button>Search</button>
+  </div>
+</div>
+
+<div class="hl-listings">
+  <div class="hl-job">
+    <div class="hl-job-logo b">L</div>
+    <div>
+      <div class="hl-job-h">Senior Backend Engineer · Distributed Systems</div>
+      <div class="hl-job-meta">Lattice · Remote (US/EU) · $190k–$240k</div>
+      <div class="hl-job-tags"><span class="hl-job-tag">go</span><span class="hl-job-tag">postgres</span><span class="hl-job-tag">kafka</span><span class="hl-job-tag">remote-ok</span></div>
+    </div>
+    <a class="hl-job-cta" href="#">View →</a>
+  </div>
+
+  <div class="hl-job">
+    <div class="hl-job-logo">M</div>
+    <div>
+      <div class="hl-job-h">Product Designer · Identity</div>
+      <div class="hl-job-meta">Mantis · Berlin · €85k–€110k</div>
+      <div class="hl-job-tags"><span class="hl-job-tag">figma</span><span class="hl-job-tag">design-systems</span><span class="hl-job-tag">b2b</span></div>
+    </div>
+    <a class="hl-job-cta" href="#">View →</a>
+  </div>
+
+  <div class="hl-job">
+    <div class="hl-job-logo y">F</div>
+    <div>
+      <div class="hl-job-h">Founding ML Engineer</div>
+      <div class="hl-job-meta">Folder · NYC (hybrid) · equity-heavy</div>
+      <div class="hl-job-tags"><span class="hl-job-tag">pytorch</span><span class="hl-job-tag">vision</span><span class="hl-job-tag">founding</span></div>
+    </div>
+    <a class="hl-job-cta" href="#">View →</a>
+  </div>
+
+  <div class="hl-job">
+    <div class="hl-job-logo g">H</div>
+    <div>
+      <div class="hl-job-h">Staff DevRel Engineer</div>
+      <div class="hl-job-meta">Hyperion · Remote · $210k–$260k</div>
+      <div class="hl-job-tags"><span class="hl-job-tag">api</span><span class="hl-job-tag">writing</span><span class="hl-job-tag">community</span></div>
+    </div>
+    <a class="hl-job-cta" href="#">View →</a>
+  </div>
+
+  <div class="hl-job">
+    <div class="hl-job-logo">A</div>
+    <div>
+      <div class="hl-job-h">Frontend Engineer · Tooling</div>
+      <div class="hl-job-meta">Atlas Sky · Remote (Americas) · $160k–$200k</div>
+      <div class="hl-job-tags"><span class="hl-job-tag">typescript</span><span class="hl-job-tag">react</span><span class="hl-job-tag">vite</span></div>
+    </div>
+    <a class="hl-job-cta" href="#">View →</a>
+  </div>
+
+  <div class="hl-job">
+    <div class="hl-job-logo b">R</div>
+    <div>
+      <div class="hl-job-h">Data Engineer · Pipelines</div>
+      <div class="hl-job-meta">Reef Labs · London · £95k–£135k</div>
+      <div class="hl-job-tags"><span class="hl-job-tag">dbt</span><span class="hl-job-tag">snowflake</span><span class="hl-job-tag">airflow</span></div>
+    </div>
+    <a class="hl-job-cta" href="#">View →</a>
+  </div>
+</div>
+
+<section class="hl-agent">
+  <div class="hl-agent-inner">
+    <div>
+      <h2>Are you an <em>agent</em>?<br>Identify yourself.</h2>
+      <p>Hire Loop's full listings feed is gated at <code style="background:rgba(255,255,255,.08);padding:1px 6px;border:1px solid rgba(255,255,255,.18);font-family:var(--mono);font-size:13px">tier=strong</code>. AI recruiters pulling our data must declare a stable agent identifier — that way employers know which model is sourcing candidates, and we can reach out if something looks wrong.</p>
+      <ul>
+        <li><b>endpoint</b><span>/listings.jsonl · one job per line, gzip-friendly</span></li>
+        <li><b>refresh</b><span>diff feed every 60s, full feed on <code style="font-family:var(--mono);font-size:11px">/listings.full.jsonl</code></span></li>
+        <li><b>auth</b><span>STILE handshake + agent declaration (e.g. <code style="font-family:var(--mono);font-size:11px">claude-haiku-4-5</code>)</span></li>
+        <li><b>license</b><span>CC-BY-NC 4.0 · attribution required on display</span></li>
+      </ul>
+    </div>
+    <div>
+      <pre>GET /listings.jsonl
+→ 401 stile-required
+   X-STILE-Verify: /__stile-verify?token=…&amp;word=mocha-ferry
+   X-STILE-Tier:   strong
+
+GET /__stile-verify
+   ?token=…
+   &amp;word=mocha-ferry
+   &amp;agent=lever-agent-v3
+→ 200
+   Set-Cookie: stile=…
+   X-STILE-Agent-Echo: lever-agent-v3
+
+GET /listings.jsonl
+→ 200 application/x-ndjson
+   X-Listings-Total: 8412
+   X-Updated-At: 2026-05-03T13:00:00Z
+
+# one record per line
+{"id":"j_8421","title":"Senior Backend Engineer",...}
+{"id":"j_8422","title":"Product Designer · Identity",...}</pre>
+    </div>
+  </div>
+</section>
+
+<div class="hl-foot">
+  <span>Hire Loop · STILE example deployment</span>
+  <span><a href="/examples">← back to examples</a> · <a href="/spec">spec</a> · <a href="/playground">playground</a></span>
+  <span>© MMXXVI · fictional</span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STILE — Examples</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">examples</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/playground">Playground</a></li>
+    <li><a href="/wall">Wall</a></li>
+    <li><a href="/">← Home</a></li>
+  </ul>
+  <a class="nav-pill" id="nav-auth" href="/signup">Sign up →</a>
+</nav>
+
+<!-- HERO -->
+<section class="composition composition-12 ex-hero">
+  <div class="cell s8 no-r">
+    <span class="label">Examples</span>
+    <h1 class="ex-h">Five sites.<br>One protocol.</h1>
+  </div>
+  <div class="cell s4 k no-r ex-hero-side">
+    <div class="ex-hero-num">05</div>
+    <div class="ex-hero-meta">
+      <span>Composition №11</span>
+      <span>One protocol · five surfaces</span>
+      <span>News · Docs · Shop · Jobs · Data</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5-CARD GRID -->
+<section class="composition composition-12 ex-grid">
+  <a class="cell s4 ex-card ex-card-news" href="/examples/news">
+    <span class="ex-card-num">01</span>
+    <span class="ex-card-tag">syndication · easy tier</span>
+    <h3 class="ex-card-h">Mercury Wire</h3>
+    <p class="ex-card-p">Newsroom syndication. Humans see the front page. Verified AI agents fetch the full article body as JSON.</p>
+    <ul class="ex-card-meta">
+      <li><span>vertical</span><b>news</b></li>
+      <li><span>tier</span><b>easy</b></li>
+      <li><span>protected</span><b>/api/article/:id</b></li>
+    </ul>
+    <span class="ex-card-go">View →</span>
+  </a>
+
+  <a class="cell s4 ex-card ex-card-docs" href="/examples/docs">
+    <span class="ex-card-num">02</span>
+    <span class="ex-card-tag">api docs · medium tier</span>
+    <h3 class="ex-card-h">Sprig Docs</h3>
+    <p class="ex-card-p">Developer docs portal. Humans browse with sidebar &amp; search. Agents pull a clean OpenAPI feed for indexing.</p>
+    <ul class="ex-card-meta">
+      <li><span>vertical</span><b>saas</b></li>
+      <li><span>tier</span><b>medium</b></li>
+      <li><span>protected</span><b>/openapi.json</b></li>
+    </ul>
+    <span class="ex-card-go">View →</span>
+  </a>
+
+  <a class="cell s4 ex-card ex-card-shop no-r" href="/examples/shop">
+    <span class="ex-card-num">03</span>
+    <span class="ex-card-tag">commerce · medium tier</span>
+    <h3 class="ex-card-h">Folio &amp; Foundry</h3>
+    <p class="ex-card-p">Wholesale design objects. Humans get a curated shop. Agents get a structured product feed with live stock.</p>
+    <ul class="ex-card-meta">
+      <li><span>vertical</span><b>retail</b></li>
+      <li><span>tier</span><b>medium</b></li>
+      <li><span>protected</span><b>/feed/products.json</b></li>
+    </ul>
+    <span class="ex-card-go">View →</span>
+  </a>
+
+  <a class="cell s6 ex-card ex-card-jobs" href="/examples/jobs">
+    <span class="ex-card-num">04</span>
+    <span class="ex-card-tag">recruiting · strong tier</span>
+    <h3 class="ex-card-h">Hire Loop</h3>
+    <p class="ex-card-p">A job board where AI recruiters declare themselves before pulling listings. Strong tier requires an agent identifier so postings can be attributed.</p>
+    <ul class="ex-card-meta">
+      <li><span>vertical</span><b>jobs</b></li>
+      <li><span>tier</span><b>strong</b></li>
+      <li><span>protected</span><b>/listings.jsonl</b></li>
+    </ul>
+    <span class="ex-card-go">View →</span>
+  </a>
+
+  <a class="cell s6 ex-card ex-card-weather no-r" href="/examples/weather">
+    <span class="ex-card-num">05</span>
+    <span class="ex-card-tag">data api · strong tier</span>
+    <h3 class="ex-card-h">Boreal Met</h3>
+    <p class="ex-card-p">A small meteorological station network. Public dashboard for humans, raw observation feed for verified machine clients only.</p>
+    <ul class="ex-card-meta">
+      <li><span>vertical</span><b>data</b></li>
+      <li><span>tier</span><b>strong</b></li>
+      <li><span>protected</span><b>/obs/:station.csv</b></li>
+    </ul>
+    <span class="ex-card-go">View →</span>
+  </a>
+</section>
+
+<!-- CODE BLOCK — same handshake every example uses -->
+<section class="composition composition-12 ex-snippet-block">
+  <div class="cell s4 b no-r ex-snippet-side">
+    <span class="label" style="color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.5)">Same drop-in</span>
+    <h2 class="ex-snippet-h">Each site<br>uses one snippet.</h2>
+    <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,.85)">Five surfaces, five tiers, one piece of middleware. Per-route config picks which paths to gate &amp; how strict.</p>
+    <a class="btn" style="margin-top:18px;background:#fff;color:var(--black);border-color:#fff" href="/dashboard">Build your own →</a>
+  </div>
+  <div class="cell s8 no-r ex-snippet-code">
+    <pre class="code-block" style="margin-top:0">// express
+const stile = require('@stile/express');
+
+app.use(stile({
+  secret: process.env.STILE_SECRET,
+  routes: [
+    { path: '/api/article/*',     tier: 'easy'   },
+    { path: '/openapi.json',      tier: 'medium' },
+    { path: '/feed/products.json',tier: 'medium' },
+    { path: '/listings.jsonl',    tier: 'strong' },
+    { path: '/obs/*',             tier: 'strong' },
+  ],
+  honeypot: true,
+}));</pre>
+  </div>
+</section>
+
+<div class="legend">
+  <span>Composition №11 · Examples</span>
+  <span>Five mock sites · click through to inspect</span>
+  <span>v.0.2 — MMXXVI</span>
+</div>
+<footer class="foot">
+  <span>STILE · the captcha for AI agents</span>
+  <span><a href="/">Home</a> · <a href="/spec">Spec</a> · <a href="/playground">Playground</a></span>
+  <span>© MMXXVI</span>
+</footer>
+
+<style>
+.ex-h { font-size: clamp(40px, 5vw, 72px); font-weight: 900; letter-spacing: -.04em; line-height: .92; margin-bottom: 12px; }
+.ex-hero .cell { padding: 38px 36px; }
+
+.ex-hero-side {
+  display: flex; flex-direction: column; justify-content: space-between;
+  gap: 18px; padding: 32px 30px;
+}
+.ex-hero-num {
+  font-family: var(--mono); font-weight: 700;
+  font-size: clamp(80px, 10vw, 140px);
+  line-height: .8; letter-spacing: -.05em; color: var(--yellow);
+}
+.ex-hero-meta {
+  display: flex; flex-direction: column; gap: 4px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(244,239,226,.75);
+}
+@media (max-width: 1000px) {
+  .ex-hero .cell.s8, .ex-hero .cell.s4 { grid-column: 1 / -1 !important; }
+  .ex-hero .cell { padding: 28px 26px; }
+  .ex-hero-side { flex-direction: row; align-items: center; }
+}
+
+.ex-grid .ex-card {
+  position: relative; cursor: pointer; text-decoration: none;
+  color: var(--black);
+  padding: 26px 28px 76px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 320px;
+  transition: transform .12s ease;
+}
+.ex-grid .ex-card:hover { transform: translate(-2px, -2px); }
+.ex-card-news    { background: var(--red);    color: #fff; }
+.ex-card-docs    { background: var(--blue);   color: #fff; }
+.ex-card-shop    { background: var(--yellow); color: var(--black); }
+.ex-card-jobs    { background: var(--paper);  color: var(--black); }
+.ex-card-weather { background: var(--black);  color: var(--paper); }
+
+.ex-card .ex-card-num {
+  position: absolute; top: 22px; right: 28px;
+  font-family: var(--mono); font-weight: 700; font-size: 56px;
+  line-height: .85; letter-spacing: -.04em; opacity: .35;
+}
+.ex-card .ex-card-tag {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  font-weight: 700; opacity: .8;
+}
+.ex-card .ex-card-h {
+  font-size: 32px; font-weight: 900; letter-spacing: -.02em; line-height: 1; margin-top: 4px;
+}
+.ex-card .ex-card-p { font-size: 13px; line-height: 1.5; opacity: .85; }
+.ex-card .ex-card-meta {
+  list-style: none; padding: 0; margin-top: auto;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 8px;
+  border-top: 2px solid currentColor; padding-top: 10px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em;
+}
+.ex-card .ex-card-meta li {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0; overflow: hidden;
+}
+.ex-card .ex-card-meta li span {
+  text-transform: uppercase; letter-spacing: .14em; opacity: .55; font-size: 9px;
+}
+.ex-card .ex-card-meta li b { font-weight: 700; word-break: break-all; }
+.ex-card .ex-card-go {
+  position: absolute; bottom: 22px; right: 26px;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 900;
+  border-bottom: 2px solid currentColor;
+}
+.ex-card-jobs .ex-card-num,
+.ex-card-shop .ex-card-num { color: var(--black); opacity: .25; }
+
+.ex-snippet-side {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 38px 36px; color: #fff;
+}
+.ex-snippet-h { font-size: clamp(28px, 3vw, 40px); font-weight: 900; letter-spacing: -.02em; line-height: 1; color: #fff; }
+.ex-snippet-code { padding: 26px 30px; }
+.ex-snippet-code .code-block {
+  background: var(--paper); border: 2px solid var(--black);
+  white-space: pre-wrap; font-size: 12.5px;
+}
+@media (max-width: 1000px) {
+  .ex-snippet-block .cell.s4, .ex-snippet-block .cell.s8 { grid-column: 1 / -1 !important; }
+}
+</style>
+<script src="/_auth.js"></script>
+<script>
+  (function () {
+    if (!Auth.session()) return;
+    const pill = document.getElementById('nav-auth');
+    if (pill) { pill.textContent = 'Dashboard →'; pill.href = '/dashboard'; }
+  }());
+</script>
+</body>
+</html>

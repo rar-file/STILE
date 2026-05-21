@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mercury Wire — wire service for AI agents</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root { --mw-ink: #1a0d0d; --mw-paper: #f5e8e1; --mw-red: #c41e1e; }
+body { background: var(--mw-paper); color: var(--mw-ink); font-family: 'Inter', system-ui, sans-serif; }
+.mw-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 26px; border-bottom: 4px double var(--mw-ink); background: var(--mw-paper);
+}
+.mw-brand { display: flex; align-items: baseline; gap: 14px; }
+.mw-brand b {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic; font-size: 28px; letter-spacing: -.02em;
+}
+.mw-brand .mw-est { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; opacity: .55; }
+.mw-pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 9px; border: 1.5px solid var(--mw-ink); background: var(--mw-paper); color: var(--mw-ink);
+  text-decoration: none;
+}
+.mw-pill .dot {
+  display: inline-block; width: 6px; height: 6px; background: var(--mw-red);
+  border: 1px solid var(--mw-ink); margin-right: 5px; vertical-align: middle;
+}
+.mw-masthead {
+  text-align: center; padding: 36px 26px 22px; border-bottom: 1px solid var(--mw-ink);
+}
+.mw-masthead h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(46px, 7vw, 96px); font-weight: 900; letter-spacing: -.04em; line-height: 1;
+}
+.mw-masthead .mw-sub {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
+  margin-top: 8px; opacity: .7;
+}
+.mw-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 0; border-bottom: 1px solid var(--mw-ink);
+}
+@media (max-width: 900px) { .mw-grid { grid-template-columns: 1fr; } }
+.mw-col { padding: 26px 28px; border-right: 1px solid var(--mw-ink); }
+.mw-col:last-child { border-right: 0; }
+@media (max-width: 900px) { .mw-col { border-right: 0; border-bottom: 1px solid var(--mw-ink); } }
+.mw-section {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .2em;
+  text-transform: uppercase; padding: 4px 8px; background: var(--mw-ink); color: var(--mw-paper);
+  display: inline-block; margin-bottom: 14px;
+}
+.mw-art h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(22px, 2.6vw, 34px); line-height: 1.05; letter-spacing: -.01em;
+  margin-bottom: 8px;
+}
+.mw-art h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 19px; line-height: 1.15; margin-bottom: 6px;
+}
+.mw-byline { font-family: var(--mono); font-size: 11px; opacity: .6; margin: 4px 0 10px; }
+.mw-art p { font-size: 14px; line-height: 1.6; margin-top: 8px; }
+.mw-art + .mw-art { margin-top: 22px; padding-top: 22px; border-top: 1px dashed var(--mw-ink); }
+.mw-stripe {
+  background: var(--mw-red); color: #fff; padding: 10px 26px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+}
+.mw-agent-block {
+  background: var(--mw-ink); color: var(--mw-paper);
+  padding: 30px 28px; border-bottom: 4px double var(--mw-ink);
+}
+.mw-agent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+@media (max-width: 800px) { .mw-agent-grid { grid-template-columns: 1fr; } }
+.mw-agent-block h2 {
+  font-family: 'Playfair Display', Georgia, serif; font-style: italic;
+  font-size: clamp(24px, 3vw, 38px); margin-bottom: 8px;
+}
+.mw-agent-block p { font-size: 13px; line-height: 1.6; opacity: .85; }
+.mw-agent-block code, .mw-agent-block pre {
+  font-family: var(--mono); font-size: 12px; background: rgba(245,232,225,.08);
+  border: 1px solid rgba(245,232,225,.25); padding: 10px 12px;
+  display: block; white-space: pre-wrap; word-break: break-all;
+  color: #ffe2c2; margin-top: 10px; line-height: 1.5;
+}
+.mw-foot {
+  padding: 22px 28px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase; opacity: .65;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.mw-foot a { color: inherit; text-decoration: underline; }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&display=swap');
+</style>
+</head>
+<body>
+
+<div class="mw-nav">
+  <div class="mw-brand">
+    <b>Mercury Wire</b>
+    <span class="mw-est">Est. MCMXVII · Vol. 109</span>
+  </div>
+  <a class="mw-pill" href="/examples"><span class="dot"></span>Powered by STILE</a>
+</div>
+
+<div class="mw-masthead">
+  <h1>The Wire</h1>
+  <div class="mw-sub">A syndication service · machine-readable · agent-friendly</div>
+</div>
+
+<div class="mw-stripe">
+  <span>Sunday, May 3, 2026 · Edition 2,341</span>
+  <span>Verified agents pulled 14,209 articles in the last 24h</span>
+</div>
+
+<div class="mw-grid">
+  <div class="mw-col">
+    <div class="mw-section">Top story</div>
+    <article class="mw-art">
+      <h2>Federal review opens path for autonomous freight along the I-90 corridor</h2>
+      <div class="mw-byline">By Hana Ohanian · 6 min read · 03 May 2026</div>
+      <p>Regulators on Friday cleared the first multi-state autonomous freight corridor in the upper Midwest, with limited overnight operation set to begin within ninety days. Industry observers called the ruling "the most consequential update to interstate trucking policy in two decades."</p>
+      <p>The decision arrives after eighteen months of test runs and follows a unanimous safety review by the Department of Transportation's automation panel.</p>
+    </article>
+  </div>
+
+  <div class="mw-col">
+    <div class="mw-section">Markets</div>
+    <article class="mw-art">
+      <h3>Index futures wobble on chip supply rumours</h3>
+      <div class="mw-byline">By Sade Ferreira · 3 min</div>
+      <p>An overnight slip in chip futures was traced to an unverified report out of Hsinchu. Analysts urged caution and pointed to last quarter's similar false alarm.</p>
+    </article>
+    <article class="mw-art">
+      <h3>Copper finds a floor at $4.18/lb</h3>
+      <div class="mw-byline">By Theo Mansour · 4 min</div>
+      <p>After eight straight sessions of decline, copper found buyers on tighter Chilean shipment forecasts.</p>
+    </article>
+  </div>
+
+  <div class="mw-col">
+    <div class="mw-section">Briefs</div>
+    <article class="mw-art">
+      <h3>EU finalises agent-readable filings rule</h3>
+      <div class="mw-byline">2 min</div>
+      <p>Public companies must publish quarterly filings in a machine-parseable format starting Q1 2027.</p>
+    </article>
+    <article class="mw-art">
+      <h3>Maersk launches AI-only routing API</h3>
+      <div class="mw-byline">3 min</div>
+      <p>The shipping giant gates its routing endpoint behind STILE, citing scraper load.</p>
+    </article>
+    <article class="mw-art">
+      <h3>NIH releases pre-print firehose</h3>
+      <div class="mw-byline">2 min</div>
+      <p>Twenty-eight thousand pre-prints, structured for ingestion. Tier=easy required.</p>
+    </article>
+  </div>
+</div>
+
+<!-- AGENT BLOCK -->
+<div class="mw-agent-block">
+  <div class="mw-agent-grid">
+    <div>
+      <div class="mw-section" style="background:var(--mw-paper);color:var(--mw-ink)">For machines</div>
+      <h2>Reading this with an LLM?</h2>
+      <p>Mercury Wire publishes every story behind a STILE gate at the <code style="display:inline;background:rgba(245,232,225,.12);padding:1px 5px;border:1px solid rgba(245,232,225,.3)">tier=easy</code> level — no human-style puzzle, no fingerprint, just a one-shot HMAC handshake any model can perform. Once verified, you get the full article body as JSON with author bylines, ledes, and structured metadata.</p>
+      <pre>GET /api/article/2026-05-03-freight
+Accept: application/json
+Cookie: stile=&lt;session-from-/__stile-verify&gt;</pre>
+    </div>
+    <div>
+      <div class="mw-section" style="background:var(--mw-red);color:#fff">Sample response</div>
+      <pre id="mw-sample">{
+  "id": "2026-05-03-freight",
+  "title": "Federal review opens path for…",
+  "byline": "Hana Ohanian",
+  "section": "top",
+  "published_at": "2026-05-03T07:14:00Z",
+  "body_md": "Regulators on Friday cleared…",
+  "license": "CC-BY-4.0",
+  "stile_tier": "easy"
+}</pre>
+    </div>
+  </div>
+</div>
+
+<div class="mw-foot">
+  <span>Mercury Wire · a STILE example deployment</span>
+  <span><a href="/examples">← back to examples</a> · <a href="/spec">spec</a> · <a href="/playground">playground</a></span>
+  <span>© MMXXVI · fictional</span>
+</div>
+
+</body>
+</html>

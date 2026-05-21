@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard · STILE</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+  /* Auth-gate paint mask: hide the page until JS confirms a session, so an
+     unauthed visitor never sees a flash of dashboard chrome. */
+  html.gate body { visibility: hidden; }
+
+  .dash-shell { max-width: 1680px; margin: 0 auto; border-left: var(--line-w) solid var(--black); border-right: var(--line-w) solid var(--black); background: var(--paper); min-height: calc(100vh - 78px); }
+  /* Dashboard breathes at very large widths: bigger pads, taller tiles, stronger headings. */
+  @media (min-width: 1400px) {
+    .dash-head .h-cell { padding: 22px 36px; }
+    .dash-head .h-value { font-size: 18px; }
+    .dash-tab { padding: 22px 0; font-size: 13px; }
+    .ov-tile { padding: 36px 38px; min-height: 200px; }
+    .ov-tile .stat { font-size: 80px; }
+    .snip-out { font-size: 14px; padding: 32px 36px; }
+    .tr-cell { padding: 36px; }
+    .tr-cell canvas { height: 240px; }
+    .set-cell { padding: 36px; }
+  }
+
+  /* Header strip — project + account */
+  .dash-head { display: grid; grid-template-columns: 1fr auto auto; align-items: stretch; border-bottom: var(--line-w) solid var(--black); }
+  .dash-head .h-cell { padding: 18px 28px; border-right: var(--line-w) solid var(--black); display: flex; flex-direction: column; gap: 4px; }
+  .dash-head .h-cell:last-child { border-right: none; }
+  .dash-head .h-label { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; opacity: .7; }
+  .dash-head .h-value { font-size: 16px; font-weight: 900; letter-spacing: -.01em; }
+  .dash-head .h-value.mono { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+  .dash-head .h-out { background: var(--black); color: var(--paper); border: 2px solid var(--black); padding: 8px 14px; font-weight: 900; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; align-self: center; margin-right: 18px; }
+  .dash-head .h-out:hover { background: var(--paper); color: var(--black); }
+
+  /* Disclosure strip */
+  .dash-note { background: var(--black); color: var(--paper); padding: 8px 28px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; border-bottom: var(--line-w) solid var(--black); }
+
+  /* Tabs */
+  .dash-tabs { display: flex; border-bottom: var(--line-w) solid var(--black); background: var(--paper-2); }
+  .dash-tab { flex: 1; padding: 18px 0; text-align: center; font-weight: 900; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; border-right: 2px solid var(--black); background: transparent; color: var(--black); text-decoration: none; }
+  .dash-tab:last-child { border-right: none; }
+  .dash-tab:hover { background: var(--yellow); }
+  .dash-tab.active { background: var(--black); color: var(--paper); }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.on { display: block; }
+
+  /* ==== Overview ==== */
+  .ov-grid { display: grid; grid-template-columns: repeat(12, 1fr); }
+  .ov-tile { padding: 28px 30px; border-bottom: var(--line-w) solid var(--black); border-right: var(--line-w) solid var(--black); display: flex; flex-direction: column; gap: 8px; min-height: 160px; }
+  .ov-tile:last-child { border-right: none; }
+  .ov-tile.s3  { grid-column: span 3; }
+  .ov-tile.s4  { grid-column: span 4; }
+  .ov-tile.s6  { grid-column: span 6; }
+  .ov-tile.s8  { grid-column: span 8; }
+  .ov-tile.s12 { grid-column: span 12; }
+  .ov-tile.b   { background: var(--blue);   color: #fff; }
+  .ov-tile.r   { background: var(--red);    color: #fff; }
+  .ov-tile.y   { background: var(--yellow); color: var(--black); }
+  .ov-tile.k   { background: var(--black);  color: var(--paper); }
+  .ov-tile .label { margin: 0; }
+  .ov-tile .stat { font-weight: 900; font-size: 64px; line-height: .92; letter-spacing: -.03em; margin-top: auto; }
+  .ov-tile .sub  { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; opacity: .9; }
+  @media (max-width: 1000px) { .ov-tile.s3, .ov-tile.s4 { grid-column: span 6; } .ov-tile.s8 { grid-column: span 12; } }
+  @media (max-width: 640px)  { .ov-tile { grid-column: 1 / -1 !important; } }
+
+  /* ==== Snippet panel ==== */
+  .snip-grid { display: grid; grid-template-columns: 220px 1fr; min-height: 480px; }
+  .snip-side { border-right: var(--line-w) solid var(--black); display: flex; flex-direction: column; }
+  .snip-pick { padding: 16px 22px; border-bottom: 2px solid var(--black); font-weight: 900; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; background: var(--paper); }
+  .snip-pick:hover { background: var(--yellow); }
+  .snip-pick.active { background: var(--black); color: var(--paper); }
+  .snip-pick.b.active { background: var(--blue); color: #fff; }
+  .snip-pick.r.active { background: var(--red); color: #fff; }
+  .snip-pick.y.active { background: var(--yellow); color: var(--black); }
+  .snip-out { background: var(--black); color: var(--paper); padding: 24px 28px; font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre; overflow: auto; }
+  .snip-bar { display: flex; gap: 10px; padding: 14px 28px; background: var(--paper-2); border-top: 2px solid var(--black); }
+  .snip-bar button { background: var(--black); color: var(--paper); border: 2px solid var(--black); padding: 8px 14px; font-weight: 700; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+  .snip-bar button:hover { background: var(--yellow); color: var(--black); }
+  .snip-bar .ok { background: var(--blue); color: #fff; border-color: var(--blue); }
+  @media (max-width: 800px) { .snip-grid { grid-template-columns: 1fr; } .snip-side { border-right: none; border-bottom: 2px solid var(--black); flex-direction: row; flex-wrap: wrap; } .snip-pick { flex: 1; } }
+
+  /* ==== Traffic panel ==== */
+  .tr-head { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 18px 28px; border-bottom: 2px solid var(--black); background: var(--paper-2); }
+  .tr-range { display: flex; gap: 0; }
+  .tr-range button { background: var(--paper); color: var(--black); border: 2px solid var(--black); padding: 8px 14px; font-weight: 700; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; margin-left: -2px; }
+  .tr-range button.active { background: var(--black); color: var(--paper); }
+  .tr-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .tr-cell { padding: 28px; border-right: var(--line-w) solid var(--black); border-bottom: var(--line-w) solid var(--black); }
+  .tr-cell:nth-child(even) { border-right: none; }
+  .tr-cell h3 { font-size: 14px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 14px; }
+  .tr-cell canvas { width: 100%; height: 200px; display: block; }
+  @media (max-width: 800px) { .tr-grid { grid-template-columns: 1fr; } .tr-cell { border-right: none; } }
+
+  /* ==== Agents panel ==== */
+  .ag-table { width: 100%; border-collapse: collapse; }
+  .ag-table th, .ag-table td { padding: 14px 18px; border-bottom: 2px solid var(--black); text-align: left; font-size: 13px; }
+  .ag-table th { background: var(--black); color: var(--paper); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+  .ag-table tr:hover td { background: var(--yellow); }
+  .ag-table .num { font-family: var(--mono); text-align: right; }
+  .ag-empty { padding: 60px 28px; text-align: center; font-weight: 700; opacity: .55; font-size: 14px; letter-spacing: .04em; }
+
+  /* ==== Settings panel ==== */
+  .set-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .set-cell { padding: 28px; border-right: var(--line-w) solid var(--black); border-bottom: var(--line-w) solid var(--black); display: flex; flex-direction: column; gap: 10px; }
+  .set-cell:nth-child(even) { border-right: none; }
+  .set-cell.danger { background: var(--red); color: #fff; }
+  .set-cell h3 { font-size: 16px; font-weight: 900; letter-spacing: -.01em; }
+  .set-field { display: flex; flex-direction: column; gap: 6px; }
+  .set-field label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .set-field input, .set-field select { font-family: var(--mono); font-size: 13px; padding: 10px 12px; border: 2px solid var(--black); background: #fff; outline: none; }
+  .set-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .set-row button { background: var(--black); color: var(--paper); border: 2px solid var(--black); padding: 9px 14px; font-weight: 700; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+  .set-row button:hover { background: var(--yellow); color: var(--black); }
+  .set-cell.danger button { background: #fff; color: var(--red); border-color: #fff; }
+  .set-secret { font-family: var(--mono); font-size: 12px; word-break: break-all; padding: 10px 12px; background: var(--black); color: var(--paper); }
+  @media (max-width: 800px) { .set-grid { grid-template-columns: 1fr; } .set-cell { border-right: none; } }
+
+  /* ==== Toast ==== */
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--black); color: var(--paper); padding: 10px 16px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; border: 2px solid var(--yellow); display: none; z-index: 100; }
+  .toast.on { display: block; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">dashboard</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/playground">Playground</a></li>
+    <li><a href="/wall">Wall</a></li>
+    <li><a href="/examples">Examples</a></li>
+  </ul>
+  <a class="nav-pill" href="/">← Home</a>
+</nav>
+
+<div class="dash-shell">
+
+  <header class="dash-head">
+    <div class="h-cell">
+      <span class="h-label">Project</span>
+      <span class="h-value" id="hd-project">—</span>
+    </div>
+    <div class="h-cell">
+      <span class="h-label">Account</span>
+      <span class="h-value mono" id="hd-email">—</span>
+    </div>
+    <button class="h-out" id="hd-logout">Sign out</button>
+  </header>
+
+  <div class="dash-note">Preview · single shared instance · metrics show traffic to this demo, not your project's traffic.</div>
+
+  <nav class="dash-tabs">
+    <a class="dash-tab" href="#overview" data-tab="overview">Overview</a>
+    <a class="dash-tab" href="#snippet"  data-tab="snippet">Snippet</a>
+    <a class="dash-tab" href="#traffic"  data-tab="traffic">Traffic</a>
+    <a class="dash-tab" href="#agents"   data-tab="agents">Agents</a>
+    <a class="dash-tab" href="#settings" data-tab="settings">Settings</a>
+  </nav>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="panel" id="panel-overview">
+    <div class="ov-grid">
+      <div class="ov-tile s3 b">
+        <span class="label" style="color:#fff">Today</span>
+        <span class="stat" id="ov-today">0</span>
+        <span class="sub">verifications</span>
+      </div>
+      <div class="ov-tile s3">
+        <span class="label">All time</span>
+        <span class="stat" id="ov-all">0</span>
+        <span class="sub">verifications</span>
+      </div>
+      <div class="ov-tile s3 r">
+        <span class="label" style="color:#fff">Blocked</span>
+        <span class="stat" id="ov-blocked">0</span>
+        <span class="sub">last 24h</span>
+      </div>
+      <div class="ov-tile s3 y">
+        <span class="label">Decoy</span>
+        <span class="stat" id="ov-decoy">0</span>
+        <span class="sub">last 24h</span>
+      </div>
+      <div class="ov-tile s8 k">
+        <span class="label" style="color:var(--paper)">Status</span>
+        <span class="stat" style="font-size:36px;line-height:1.1" id="ov-status">Online · accepting traffic.</span>
+        <span class="sub" style="opacity:.7" id="ov-status-sub">Tier · easy &nbsp;·&nbsp; Honeypot · on</span>
+      </div>
+      <div class="ov-tile s4">
+        <span class="label">Channels</span>
+        <span class="stat" style="font-size:42px">5</span>
+        <span class="sub">comment · jsonld · aria · svg · meta</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SNIPPET ============ -->
+  <section class="panel" id="panel-snippet">
+    <div class="snip-grid">
+      <aside class="snip-side">
+        <div class="snip-pick b active" data-snip="node">Node http</div>
+        <div class="snip-pick"          data-snip="express">Express</div>
+        <div class="snip-pick"          data-snip="fastify">Fastify</div>
+        <div class="snip-pick y"        data-snip="hono">Hono</div>
+        <div class="snip-pick r"        data-snip="next">Next.js</div>
+        <div class="snip-pick"          data-snip="env">.env</div>
+      </aside>
+      <div>
+        <pre class="snip-out" id="snip-out">…</pre>
+        <div class="snip-bar">
+          <button id="snip-copy" class="ok">Copy snippet</button>
+          <button id="snip-copy-secret">Copy secret</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRAFFIC ============ -->
+  <section class="panel" id="panel-traffic">
+    <div class="tr-head">
+      <span class="label" style="margin:0">Traffic · live</span>
+      <div class="tr-range">
+        <button data-range="24h" class="active">24h</button>
+        <button data-range="7d">7d</button>
+        <button data-range="30d">30d</button>
+      </div>
+    </div>
+    <div class="tr-grid">
+      <div class="tr-cell">
+        <h3>Verifications</h3>
+        <canvas id="ch-verified"></canvas>
+      </div>
+      <div class="tr-cell">
+        <h3>Issued · verified · blocked</h3>
+        <canvas id="ch-funnel"></canvas>
+      </div>
+      <div class="tr-cell">
+        <h3>Blocked</h3>
+        <canvas id="ch-blocked"></canvas>
+      </div>
+      <div class="tr-cell">
+        <h3>Tier mix</h3>
+        <canvas id="ch-tiers"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AGENTS ============ -->
+  <section class="panel" id="panel-agents">
+    <table class="ag-table" id="ag-table">
+      <thead><tr><th>Agent</th><th>First seen</th><th>Last seen</th><th class="num">Verifications</th></tr></thead>
+      <tbody id="ag-body"><tr><td colspan="4" class="ag-empty">Loading…</td></tr></tbody>
+    </table>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="panel" id="panel-settings">
+    <div class="set-grid">
+
+      <div class="set-cell">
+        <h3>Project</h3>
+        <div class="set-field">
+          <label for="se-name">Project name</label>
+          <input id="se-name" type="text" maxlength="60">
+        </div>
+        <div class="set-field">
+          <label for="se-tier">Tier</label>
+          <select id="se-tier">
+            <option value="easy">easy</option>
+            <option value="medium">medium</option>
+            <option value="strong">strong</option>
+          </select>
+        </div>
+        <div class="set-field">
+          <label for="se-paths">Protected paths · comma-separated</label>
+          <input id="se-paths" type="text">
+        </div>
+        <div class="set-row">
+          <button id="se-save">Save</button>
+        </div>
+      </div>
+
+      <div class="set-cell">
+        <h3>Secret</h3>
+        <div class="set-secret" id="se-secret">—</div>
+        <div class="set-row">
+          <button id="se-rotate">Rotate</button>
+          <button id="se-show">Show / hide</button>
+          <button id="se-copy">Copy</button>
+        </div>
+        <p style="font-size:12px;line-height:1.5;opacity:.75">Rotating invalidates every outstanding token and session cookie. There is no overlap window.</p>
+      </div>
+
+      <div class="set-cell">
+        <h3>Honeypot</h3>
+        <div class="set-field">
+          <label><input type="checkbox" id="se-hp"> &nbsp; Expose decoy URL</label>
+        </div>
+        <div class="set-field">
+          <label for="se-rep">Reputation floor · 0 = off</label>
+          <input id="se-rep" type="number" min="0" max="100" step="5">
+        </div>
+        <div class="set-field">
+          <label><input type="checkbox" id="se-wh"> &nbsp; Webhook on verify</label>
+        </div>
+        <div class="set-field">
+          <label for="se-wh-url">Webhook URL</label>
+          <input id="se-wh-url" type="url" placeholder="https://…">
+        </div>
+      </div>
+
+      <div class="set-cell danger">
+        <h3>Danger zone</h3>
+        <p style="font-size:12px;line-height:1.5">Deletes the local account and signs you out. There is no recovery.</p>
+        <div class="set-row"><button id="se-del">Delete account</button></div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/_auth.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // Auth gate must run before paint; if no session, jump to /login.
+  document.documentElement.classList.add('gate');
+  Auth.requireAuth();
+  const account = Auth.account();
+  if (!account) return;
+  document.documentElement.classList.remove('gate');
+
+  // ----- Header
+  document.getElementById('hd-project').textContent = account.projectName;
+  document.getElementById('hd-email').textContent = account.email;
+  document.getElementById('hd-logout').addEventListener('click', () => {
+    Auth.logOut(); location.assign('/');
+  });
+
+  // ----- Tabs
+  const TABS = ['overview', 'snippet', 'traffic', 'agents', 'settings'];
+  function showTab(id) {
+    if (!TABS.includes(id)) id = 'overview';
+    for (const t of TABS) {
+      document.getElementById('panel-' + t).classList.toggle('on', t === id);
+      document.querySelector(`.dash-tab[data-tab="${t}"]`).classList.toggle('active', t === id);
+    }
+    if (id === 'traffic') paintTraffic();
+    if (id === 'agents')  loadAgents();
+    if (id === 'overview') refreshOverview();
+  }
+  function currentTabFromHash() {
+    return (location.hash || '#overview').slice(1);
+  }
+  window.addEventListener('hashchange', () => showTab(currentTabFromHash()));
+  showTab(currentTabFromHash());
+
+  // ----- Toast
+  const toast = document.getElementById('toast');
+  let toastT = null;
+  function notify(msg) {
+    toast.textContent = msg; toast.classList.add('on');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toast.classList.remove('on'), 1700);
+  }
+
+  // ----- Overview: pull live counters
+  async function refreshOverview() {
+    try {
+      const [c, s] = await Promise.all([
+        fetch('/api/stats/counter').then(r => r.json()),
+        fetch('/api/stats/summary?range=24h').then(r => r.json()),
+      ]);
+      document.getElementById('ov-today').textContent  = (c.today || 0).toLocaleString();
+      document.getElementById('ov-all').textContent    = (c.all_time || 0).toLocaleString();
+      document.getElementById('ov-blocked').textContent = (s.totals?.gated_blocked || 0).toLocaleString();
+      document.getElementById('ov-decoy').textContent   = (s.totals?.decoy_hit || 0).toLocaleString();
+      document.getElementById('ov-status-sub').textContent =
+        `Tier · ${account.tier} · Honeypot · ${account.honeypot ? 'on' : 'off'}`;
+    } catch { /* keep stale */ }
+  }
+  setInterval(refreshOverview, 5000);
+
+  // ----- Snippet generators (lifted from previous setup wizard, simplified)
+  let activeSnip = 'node';
+  function paths() {
+    return account.paths.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  const snip = {
+    node: () => `const http = require('http');
+const createStile = require('stile');
+
+const stile = createStile({
+  secret:  process.env.STILE_SECRET,
+  protect: ${JSON.stringify(paths())},
+  tier:    '${account.tier}',
+  ttl:     ${account.ttl},
+  honeypot: ${!!account.honeypot},${account.reputationFloor > 0 ? `\n  reputationFloor: ${account.reputationFloor},` : ''}${account.webhookOn && account.webhook ? `\n  webhook: { url: ${JSON.stringify(account.webhook)}, secret: process.env.STILE_WEBHOOK_SECRET },` : ''}
+});
+
+http.createServer(stile.wrap(myApp)).listen(3000);`,
+    express: () => `const createStileExpress = require('stile/adapters/express');
+
+app.use(createStileExpress({
+  secret:  process.env.STILE_SECRET,
+  protect: ${JSON.stringify(paths())},
+  tier:    '${account.tier}',
+}));`,
+    fastify: () => `const createStileFastify = require('stile/adapters/fastify');
+
+await app.register(createStileFastify({
+  secret:  process.env.STILE_SECRET,
+  protect: ${JSON.stringify(paths())},
+  tier:    '${account.tier}',
+}));`,
+    hono: () => `import createStileHono from 'stile/adapters/hono';
+
+app.use('*', createStileHono({
+  secret:  process.env.STILE_SECRET,
+  protect: ${JSON.stringify(paths())},
+  tier:    '${account.tier}',
+}));`,
+    next: () => `// middleware.ts
+import createStileNext from 'stile/adapters/next';
+
+export const config = {
+  matcher: ${JSON.stringify(paths().map(p => p + '/:path*'))},
+  runtime: 'nodejs',
+};
+
+export default createStileNext({
+  secret:  process.env.STILE_SECRET,
+  protect: ${JSON.stringify(paths())},
+  tier:    '${account.tier}',
+});`,
+    env: () => `# .env
+STILE_SECRET=${account.secret}${account.webhookOn && account.webhook ? `
+STILE_WEBHOOK_URL=${account.webhook}
+STILE_WEBHOOK_SECRET=<openssl rand -hex 16>` : ''}`,
+  };
+  function paintSnip() {
+    document.getElementById('snip-out').textContent = (snip[activeSnip] || snip.node)();
+  }
+  document.querySelectorAll('.snip-pick').forEach(p => {
+    p.addEventListener('click', () => {
+      document.querySelectorAll('.snip-pick').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      activeSnip = p.dataset.snip;
+      paintSnip();
+    });
+  });
+  document.getElementById('snip-copy').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('snip-out').textContent);
+    notify('Snippet copied.');
+  });
+  document.getElementById('snip-copy-secret').addEventListener('click', () => {
+    navigator.clipboard.writeText(account.secret);
+    notify('Secret copied.');
+  });
+  paintSnip();
+
+  // ----- Traffic charts
+  let currentRange = '24h';
+  document.querySelectorAll('.tr-range button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.tr-range button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentRange = b.dataset.range;
+      paintTraffic();
+    });
+  });
+
+  const PALETTE = { red: '#d62828', blue: '#1949b8', yellow: '#f6c11c', black: '#0a0a0a' };
+
+  function setupCanvas(canvas) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  }
+
+  function drawBars(canvas, points, key, color) {
+    const { ctx, w, h } = setupCanvas(canvas);
+    if (!points.length) { drawEmpty(ctx, w, h); return; }
+    const max = Math.max(1, ...points.map(p => p[key] || 0));
+    const barW = (w - 24) / points.length;
+    points.forEach((p, i) => {
+      const x = 12 + i * barW;
+      const v = p[key] || 0;
+      const barH = (v / max) * (h - 24);
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 2, h - 12 - barH, Math.max(2, barW - 6), barH);
+      ctx.strokeStyle = PALETTE.black; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 2, h - 12 - barH, Math.max(2, barW - 6), barH);
+    });
+  }
+  function drawFunnel(canvas, totals) {
+    const { ctx, w, h } = setupCanvas(canvas);
+    const data = [
+      { label: 'Issued',   value: totals.challenge_issued || 0, color: PALETTE.yellow },
+      { label: 'Verified', value: totals.verified || 0,         color: PALETTE.blue },
+      { label: 'Blocked',  value: totals.gated_blocked || 0,    color: PALETTE.red },
+    ];
+    const max = Math.max(1, ...data.map(d => d.value));
+    const barW = (w - 24) / data.length;
+    data.forEach((d, i) => {
+      const x = 12 + i * barW;
+      const barH = (d.value / max) * (h - 50);
+      ctx.fillStyle = d.color;
+      ctx.fillRect(x + 4, h - 30 - barH, barW - 12, barH);
+      ctx.strokeStyle = PALETTE.black; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 4, h - 30 - barH, barW - 12, barH);
+      ctx.fillStyle = PALETTE.black;
+      ctx.font = '700 11px Inter, sans-serif';
+      ctx.fillText(d.label.toUpperCase(), x + 6, h - 12);
+      ctx.font = '900 16px Inter, sans-serif';
+      ctx.fillText(String(d.value), x + 6, h - 36 - barH);
+    });
+  }
+  function drawTiers(canvas, tiers) {
+    const { ctx, w, h } = setupCanvas(canvas);
+    const colors = { easy: PALETTE.blue, medium: PALETTE.yellow, strong: PALETTE.red, 'fast-path': PALETTE.black };
+    const entries = Object.entries(tiers || {});
+    if (!entries.length) { drawEmpty(ctx, w, h); return; }
+    const max = Math.max(1, ...entries.map(e => e[1]));
+    const barW = (w - 24) / entries.length;
+    entries.forEach(([name, val], i) => {
+      const x = 12 + i * barW;
+      const barH = (val / max) * (h - 50);
+      ctx.fillStyle = colors[name] || PALETTE.black;
+      ctx.fillRect(x + 4, h - 30 - barH, barW - 12, barH);
+      ctx.strokeStyle = PALETTE.black; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 4, h - 30 - barH, barW - 12, barH);
+      ctx.fillStyle = PALETTE.black;
+      ctx.font = '700 10px Inter, sans-serif';
+      ctx.fillText(name.toUpperCase(), x + 6, h - 12);
+      ctx.font = '900 14px Inter, sans-serif';
+      ctx.fillText(String(val), x + 6, h - 36 - barH);
+    });
+  }
+  function drawEmpty(ctx, w, h) {
+    ctx.fillStyle = '#999';
+    ctx.font = '700 12px Inter, sans-serif';
+    ctx.fillText('No data yet.', 14, h / 2);
+  }
+
+  async function paintTraffic() {
+    try {
+      const s = await fetch('/api/stats/summary?range=' + currentRange).then(r => r.json());
+      drawBars(document.getElementById('ch-verified'), s.series || [], 'verified', PALETTE.blue);
+      drawFunnel(document.getElementById('ch-funnel'), s.totals || {});
+      drawBars(document.getElementById('ch-blocked'),  s.series || [], 'blocked',  PALETTE.red);
+      drawTiers(document.getElementById('ch-tiers'),   s.tiers || {});
+    } catch { /* leave canvas empty */ }
+  }
+  window.addEventListener('resize', () => { if (currentTabFromHash() === 'traffic') paintTraffic(); });
+
+  // ----- Agents
+  async function loadAgents() {
+    const tbody = document.getElementById('ag-body');
+    try {
+      const r = await fetch('/api/wall').then(r => r.json());
+      const list = r.agents || [];
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="ag-empty">No agents have verified yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(a => `
+        <tr>
+          <td><code>${esc(a.name)}</code></td>
+          <td>${fmtDate(a.first_seen)}</td>
+          <td>${fmtDate(a.last_seen)}</td>
+          <td class="num">${a.verification_count || 0}</td>
+        </tr>
+      `).join('');
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="4" class="ag-empty">Could not load agents.</td></tr>';
+    }
+  }
+  function fmtDate(ts) { return ts ? new Date(ts).toISOString().slice(0, 16).replace('T', ' ') : '—'; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // ----- Settings
+  function loadSettings() {
+    document.getElementById('se-name').value   = account.projectName;
+    document.getElementById('se-tier').value   = account.tier;
+    document.getElementById('se-paths').value  = account.paths;
+    document.getElementById('se-hp').checked   = !!account.honeypot;
+    document.getElementById('se-rep').value    = account.reputationFloor || 0;
+    document.getElementById('se-wh').checked   = !!account.webhookOn;
+    document.getElementById('se-wh-url').value = account.webhook || '';
+    paintSecret();
+  }
+  let secretShown = false;
+  function paintSecret() {
+    document.getElementById('se-secret').textContent =
+      secretShown ? account.secret : account.secret.replace(/./g, '•');
+  }
+  document.getElementById('se-show').addEventListener('click', () => { secretShown = !secretShown; paintSecret(); });
+  document.getElementById('se-copy').addEventListener('click', () => {
+    navigator.clipboard.writeText(account.secret); notify('Secret copied.');
+  });
+  document.getElementById('se-rotate').addEventListener('click', () => {
+    if (!confirm('Rotate the secret? All sessions will need to re-verify.')) return;
+    Auth.rotateSecret();
+    Object.assign(account, Auth.account());
+    paintSecret(); paintSnip(); notify('Secret rotated.');
+  });
+  document.getElementById('se-save').addEventListener('click', () => {
+    account.projectName     = document.getElementById('se-name').value.slice(0, 60) || account.projectName;
+    account.tier            = document.getElementById('se-tier').value;
+    account.paths           = document.getElementById('se-paths').value;
+    account.honeypot        = document.getElementById('se-hp').checked;
+    account.reputationFloor = Math.max(0, Math.min(100, Number(document.getElementById('se-rep').value) || 0));
+    account.webhookOn       = document.getElementById('se-wh').checked;
+    account.webhook         = document.getElementById('se-wh-url').value.trim();
+    Auth.saveAccount(account);
+    document.getElementById('hd-project').textContent = account.projectName;
+    paintSnip();
+    refreshOverview();
+    notify('Settings saved.');
+  });
+  document.getElementById('se-del').addEventListener('click', () => {
+    if (!confirm('Delete this account permanently? This cannot be undone.')) return;
+    Auth.deleteAccount();
+    location.assign('/');
+  });
+  loadSettings();
+
+  // First paint
+  refreshOverview();
+})();
+</script>
+</body>
+</html>

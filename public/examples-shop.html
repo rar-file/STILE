@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Folio &amp; Foundry — wholesale design objects</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root { --ff-cream: #f7f1e3; --ff-ink: #1a1612; --ff-rust: #b04a1c; --ff-sage: #6b7d56; --ff-gold: #c89b3c; }
+body { background: var(--ff-cream); color: var(--ff-ink); font-family: 'Inter', system-ui, sans-serif; }
+.ff-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 38px; background: var(--ff-cream); border-bottom: 1px solid var(--ff-ink);
+}
+.ff-brand { display: flex; align-items: baseline; gap: 14px; }
+.ff-brand b {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 26px; letter-spacing: -.01em; font-weight: 600;
+}
+.ff-nav-links { display: flex; gap: 22px; list-style: none; }
+.ff-nav-links a {
+  color: var(--ff-ink); text-decoration: none; font-size: 13px; letter-spacing: .04em;
+}
+.ff-nav-links a:hover { color: var(--ff-rust); }
+.ff-pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 4px 9px; border: 1px solid var(--ff-ink); background: var(--ff-cream); color: var(--ff-ink);
+  text-decoration: none;
+}
+.ff-pill .dot {
+  display: inline-block; width: 6px; height: 6px; background: var(--ff-rust);
+  border-radius: 50%; margin-right: 6px; vertical-align: middle;
+}
+
+.ff-hero {
+  display: grid; grid-template-columns: 1.4fr 1fr;
+  border-bottom: 1px solid var(--ff-ink); min-height: 380px;
+}
+@media (max-width: 900px) { .ff-hero { grid-template-columns: 1fr; } }
+.ff-hero-l {
+  padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; gap: 18px;
+}
+.ff-hero-r {
+  background: var(--ff-rust); color: var(--ff-cream);
+  padding: 56px 48px; display: flex; flex-direction: column; justify-content: center; gap: 16px;
+}
+.ff-hero h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(40px, 6vw, 78px); font-weight: 600;
+  letter-spacing: -.02em; line-height: 1; font-style: italic;
+}
+.ff-hero p { font-size: 16px; line-height: 1.6; max-width: 52ch; }
+.ff-tag {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  align-self: flex-start; padding: 4px 10px;
+  background: var(--ff-ink); color: var(--ff-cream);
+}
+.ff-hero-r .ff-tag { background: var(--ff-cream); color: var(--ff-ink); }
+.ff-hero-r h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 32px; font-weight: 600; line-height: 1.05;
+}
+.ff-hero-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px;
+}
+.ff-hero-stats .n {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-size: 38px; font-weight: 600;
+  font-style: italic; line-height: 1;
+}
+.ff-hero-stats .l {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  opacity: .8; margin-top: 2px;
+}
+
+.ff-section-head {
+  padding: 40px 48px 18px; display: flex; justify-content: space-between; align-items: baseline;
+}
+.ff-section-head h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 32px; font-weight: 600; letter-spacing: -.01em;
+}
+.ff-section-head a { font-size: 12px; color: var(--ff-rust); text-decoration: underline; }
+
+.ff-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+  border-top: 1px solid var(--ff-ink); border-bottom: 1px solid var(--ff-ink);
+}
+@media (max-width: 1000px) { .ff-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .ff-grid { grid-template-columns: 1fr; } }
+
+.ff-prod {
+  padding: 24px 22px; border-right: 1px solid var(--ff-ink); background: var(--ff-cream);
+  display: flex; flex-direction: column; gap: 10px; min-height: 280px;
+}
+.ff-prod:nth-child(4n) { border-right: 0; }
+@media (max-width: 1000px) { .ff-prod:nth-child(2n) { border-right: 0; } }
+@media (max-width: 600px) { .ff-prod { border-right: 0 !important; border-bottom: 1px solid var(--ff-ink); } }
+.ff-prod-img {
+  height: 130px; background: linear-gradient(135deg, var(--ff-cream), #ddd1b8);
+  border: 1px solid var(--ff-ink); position: relative; overflow: hidden;
+}
+.ff-prod-img::after {
+  content: attr(data-shape); position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', Georgia, serif; font-size: 38px; font-style: italic;
+  color: var(--ff-rust); opacity: .85;
+}
+.ff-prod-img.sage { background: linear-gradient(135deg, #d4dcc4, var(--ff-sage)); }
+.ff-prod-img.sage::after { color: var(--ff-cream); }
+.ff-prod-img.rust { background: linear-gradient(135deg, #e8b89a, var(--ff-rust)); }
+.ff-prod-img.rust::after { color: var(--ff-cream); }
+.ff-prod-img.ink { background: linear-gradient(135deg, #5a564f, var(--ff-ink)); }
+.ff-prod-img.ink::after { color: var(--ff-gold); }
+.ff-prod-img.gold { background: linear-gradient(135deg, #f4e0a4, var(--ff-gold)); }
+.ff-prod-name {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600;
+  font-style: italic; line-height: 1.05;
+}
+.ff-prod-meta { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; opacity: .65; }
+.ff-prod-row {
+  display: flex; justify-content: space-between; align-items: baseline; margin-top: auto;
+  padding-top: 6px; border-top: 1px solid var(--ff-ink);
+}
+.ff-prod-price {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600;
+}
+.ff-prod-stock {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  padding: 3px 7px; border: 1px solid var(--ff-ink);
+}
+.ff-prod-stock.in   { background: var(--ff-sage); color: var(--ff-cream); border-color: var(--ff-sage); }
+.ff-prod-stock.low  { background: var(--ff-gold); color: var(--ff-ink); border-color: var(--ff-ink); }
+.ff-prod-stock.out  { background: var(--ff-cream); opacity: .55; }
+
+.ff-feed {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border-bottom: 1px solid var(--ff-ink);
+}
+@media (max-width: 900px) { .ff-feed { grid-template-columns: 1fr; } }
+.ff-feed-l {
+  background: var(--ff-ink); color: var(--ff-cream); padding: 48px;
+}
+.ff-feed-r { padding: 48px; }
+.ff-feed-l h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(28px, 3vw, 42px); font-style: italic; font-weight: 600; line-height: 1;
+}
+.ff-feed-l p { font-size: 14px; line-height: 1.6; opacity: .85; margin-top: 12px; max-width: 50ch; }
+.ff-feed-l pre, .ff-feed-r pre {
+  font-family: var(--mono); font-size: 12px; line-height: 1.55;
+  padding: 14px 16px; margin-top: 14px; white-space: pre-wrap; word-break: break-all;
+}
+.ff-feed-l pre {
+  background: rgba(247,241,227,.08); border: 1px solid rgba(247,241,227,.18); color: #ffe2b3;
+}
+.ff-feed-r pre {
+  background: var(--ff-cream); border: 1px solid var(--ff-ink); color: var(--ff-ink);
+}
+.ff-feed-r h4 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-style: italic; font-weight: 600; }
+.ff-feed-r ul { list-style: none; padding: 0; margin-top: 10px; font-size: 13px; line-height: 1.8; }
+.ff-feed-r ul li::before { content: '— '; color: var(--ff-rust); }
+
+.ff-foot {
+  padding: 22px 38px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase; opacity: .65;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.ff-foot a { color: var(--ff-ink); }
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+</style>
+</head>
+<body>
+
+<div class="ff-nav">
+  <div class="ff-brand">
+    <b>Folio &amp; Foundry</b>
+  </div>
+  <ul class="ff-nav-links">
+    <li><a href="#">Catalog</a></li>
+    <li><a href="#">Editions</a></li>
+    <li><a href="#">Trade</a></li>
+    <li><a href="#">Studio</a></li>
+  </ul>
+  <a class="ff-pill" href="/examples"><span class="dot"></span>Powered by STILE</a>
+</div>
+
+<div class="ff-hero">
+  <div class="ff-hero-l">
+    <span class="ff-tag">Spring 26 · Trade catalog</span>
+    <h1>Objects with<br>quiet weight.</h1>
+    <p>Folio &amp; Foundry is a small wholesale studio shipping cast-bronze hardware, hand-thrown vessels, and limited-edition prints to fifty-eight independent retailers worldwide. New drops every fortnight.</p>
+  </div>
+  <div class="ff-hero-r">
+    <span class="ff-tag">For procurement bots</span>
+    <h2>A live JSON feed for AI buyers, gated at medium tier.</h2>
+    <p style="font-size:14px;line-height:1.6">Stock, prices, lead-times — all machine-readable at <code>/feed/products.json</code>. STILE keeps casual scrapers out without breaking your agent.</p>
+    <div class="ff-hero-stats">
+      <div><div class="n">412</div><div class="l">SKUs live</div></div>
+      <div><div class="n">58</div><div class="l">Retailers</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="ff-section-head">
+  <h3>New this fortnight</h3>
+  <a href="#">View full catalog →</a>
+</div>
+
+<div class="ff-grid">
+  <div class="ff-prod">
+    <div class="ff-prod-img sage" data-shape="◐"></div>
+    <div class="ff-prod-name">Aubergine Vessel №7</div>
+    <div class="ff-prod-meta">SKU 0421 · stoneware · 280mm</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$148</span>
+      <span class="ff-prod-stock in">in stock · 24</span>
+    </div>
+  </div>
+  <div class="ff-prod">
+    <div class="ff-prod-img rust" data-shape="◇"></div>
+    <div class="ff-prod-name">Cast Knob, blunt</div>
+    <div class="ff-prod-meta">SKU 0118 · solid bronze · 38mm</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$22</span>
+      <span class="ff-prod-stock in">in stock · 412</span>
+    </div>
+  </div>
+  <div class="ff-prod">
+    <div class="ff-prod-img ink" data-shape="✶"></div>
+    <div class="ff-prod-name">Lithograph, "Northern arc"</div>
+    <div class="ff-prod-meta">SKU 0509 · ed. 50 · 60×40cm</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$320</span>
+      <span class="ff-prod-stock low">low · 6 left</span>
+    </div>
+  </div>
+  <div class="ff-prod">
+    <div class="ff-prod-img gold" data-shape="◯"></div>
+    <div class="ff-prod-name">Brass Tray, oval</div>
+    <div class="ff-prod-meta">SKU 0214 · sand-cast · 320mm</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$96</span>
+      <span class="ff-prod-stock in">in stock · 71</span>
+    </div>
+  </div>
+
+  <div class="ff-prod">
+    <div class="ff-prod-img" data-shape="▲"></div>
+    <div class="ff-prod-name">Folded Bookend, pair</div>
+    <div class="ff-prod-meta">SKU 0312 · cor-ten steel</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$74</span>
+      <span class="ff-prod-stock in">in stock · 38</span>
+    </div>
+  </div>
+  <div class="ff-prod">
+    <div class="ff-prod-img sage" data-shape="❍"></div>
+    <div class="ff-prod-name">Sage Bowl, shallow</div>
+    <div class="ff-prod-meta">SKU 0427 · porcelain · 220mm</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$58</span>
+      <span class="ff-prod-stock out">backorder</span>
+    </div>
+  </div>
+  <div class="ff-prod">
+    <div class="ff-prod-img rust" data-shape="✦"></div>
+    <div class="ff-prod-name">Wax Seal Set</div>
+    <div class="ff-prod-meta">SKU 0608 · brass + beechwood</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$42</span>
+      <span class="ff-prod-stock in">in stock · 96</span>
+    </div>
+  </div>
+  <div class="ff-prod">
+    <div class="ff-prod-img ink" data-shape="∿"></div>
+    <div class="ff-prod-name">Ink Diary, refillable</div>
+    <div class="ff-prod-meta">SKU 0715 · linen + leather</div>
+    <div class="ff-prod-row">
+      <span class="ff-prod-price">$66</span>
+      <span class="ff-prod-stock low">low · 3 left</span>
+    </div>
+  </div>
+</div>
+
+<div class="ff-feed">
+  <div class="ff-feed-l">
+    <span class="ff-tag" style="background:var(--ff-gold);color:var(--ff-ink)">/feed/products.json</span>
+    <h3>An honest feed,<br>just for buyers.</h3>
+    <p>Procurement bots and agent-driven retailers get the same data the wholesale team ships to its CSV partners — minus the headache of brittle scraping. Verified clients pull the feed daily; everyone else gets a polite 401.</p>
+    <pre>GET /feed/products.json
+→ 401 stile-required (tier=medium)
+   X-STILE-Verify: /__stile-verify?token=…&amp;word=ember-folio
+
+GET /__stile-verify?token=…&amp;word=ember-folio
+→ 200 Set-Cookie: stile=…
+
+GET /feed/products.json
+→ 200 application/json
+   X-Updated-At: 2026-05-03T08:00:00Z</pre>
+  </div>
+  <div class="ff-feed-r">
+    <span class="ff-tag" style="background:var(--ff-cream);color:var(--ff-ink);border:1px solid var(--ff-ink)">payload sample</span>
+    <h4 style="margin-top:12px">412 SKUs · 1.4MB · refreshed hourly</h4>
+    <ul>
+      <li>Stable IDs, never recycled</li>
+      <li>ISO 4217 currency, ISO 3166 origin</li>
+      <li>Stock counts within 60s of warehouse truth</li>
+      <li>Lead-time hints for backorder SKUs</li>
+    </ul>
+    <pre>{
+  "id": "sku-0421",
+  "name": "Aubergine Vessel №7",
+  "price_cents": 14800,
+  "currency": "USD",
+  "stock": 24,
+  "lead_days": 0,
+  "material": "stoneware",
+  "origin": "PT",
+  "stile_tier": "medium"
+}</pre>
+  </div>
+</div>
+
+<div class="ff-foot">
+  <span>Folio &amp; Foundry · STILE example deployment</span>
+  <span><a href="/examples">← back to examples</a> · <a href="/spec">spec</a> · <a href="/playground">playground</a></span>
+  <span>© MMXXVI · fictional</span>
+</div>
+
+</body>
+</html>

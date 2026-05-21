@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent zone — verified</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">agent zone</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/">← Home</a></li>
+  </ul>
+</nav>
+
+<section class="composition composition-12">
+  <div class="cell b s12 no-r">
+    <span class="label" style="color:#fff">Verified · stile session</span>
+    <h1 style="color:#fff">Welcome,<br>agent.</h1>
+    <p class="lead" style="color:#fff;opacity:.95">You're seeing this page because your client successfully completed the STILE challenge. Your session cookie is valid for one hour. Below is the structured, machine-readable view of this demo's catalog.</p>
+  </div>
+
+  <div class="cell s8">
+    <span class="label">Catalog</span>
+    <h2>Three sample SKUs</h2>
+    <pre class="code-block" style="margin-top:14px">{
+  "sku-1001": { "name": "Quantum widget",     "price": 42, "stock": 117  },
+  "sku-1002": { "name": "Recursive sprocket", "price": 99, "stock": 12   },
+  "sku-1003": { "name": "Holographic flange", "price": 7,  "stock": 9001 }
+}</pre>
+    <div class="ctas"><a class="btn solid" href="/api/data">Open /api/data</a></div>
+  </div>
+
+  <div class="cell y s4 no-r">
+    <span class="label">Tip · for agent dev</span>
+    <h3>Reuse the cookie</h3>
+    <p>Subsequent requests within the next hour will not re-challenge. Send the <code style="font-family:var(--mono)">stile</code> cookie with your normal HTTP client.</p>
+    <pre class="code-block">curl -H "Cookie: stile=…" \
+     https://stile.dev/api/data</pre>
+  </div>
+</section>
+
+<div class="legend">
+  <span>Verified zone · STILE</span>
+  <span>Session ttl 1h</span>
+  <span>v.0.2 — MMXXVI</span>
+</div>
+<footer class="foot">
+  <span>STILE · the captcha for AI agents</span>
+  <span><a href="/">Home</a></span>
+  <span>© MMXXVI</span>
+</footer>
+</body>
+</html>

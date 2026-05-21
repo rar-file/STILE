@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STILE — the captcha that lets AI agents in</title>
+<meta name="description" content="STILE is a drop-in challenge any LLM can solve and humans never see. The first captcha designed to LET AGENTS IN.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f4efe2'/%3E%3Crect x='4' y='4' width='28' height='28' fill='%23d62828' stroke='%230a0a0a' stroke-width='4'/%3E%3Crect x='32' y='4' width='28' height='28' fill='%23f4efe2' stroke='%230a0a0a' stroke-width='4'/%3E%3Crect x='4' y='32' width='28' height='28' fill='%23f6c11c' stroke='%230a0a0a' stroke-width='4'/%3E%3Crect x='32' y='32' width='28' height='28' fill='%231949b8' stroke='%230a0a0a' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="swatch"><span class="r"></span><span class="b"></span><span class="y"></span></span>
+    <span class="name">STILE</span>
+    <span class="tag">v0.3</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/spec">Spec</a></li>
+    <li><a href="/playground">Playground</a></li>
+    <li><a href="/examples">Examples</a></li>
+    <li><a href="/wall">Wall</a></li>
+  </ul>
+  <a class="nav-pill" id="nav-auth" href="/signup">Sign up →</a>
+</nav>
+
+<!-- ===================================================================
+     COMPOSITION №01 · HERO
+     =================================================================== -->
+<section class="composition composition-12" aria-label="Hero">
+
+  <div class="cell b r2 s4">
+    <span class="label">Live agent</span>
+    <h2>Atlas /<br>llama-3-8b</h2>
+    <p style="margin-top:10px">Currently walking the gate at <code style="font-family:var(--mono);font-size:13px">your-site.com/agents</code>.</p>
+    <div class="agent-stack" id="hero-agent">
+      <div class="agent-msg"><b>GET</b> /agents <code>(Accept: text/html)</code></div>
+      <div class="agent-msg"><b>read</b> aria-hidden block · found verify URL</div>
+      <div class="agent-msg"><b>GET</b> /__stile-verify?token=<code>c2.…</code></div>
+      <div class="agent-msg"><b>200</b> · Set-Cookie stile · ttl 1h</div>
+      <div class="progress" aria-hidden="true"><div id="hero-progress" style="width:88%"></div></div>
+    </div>
+    <div class="ctas">
+      <a class="btn" href="/playground">Run yours →</a>
+      <a class="btn" href="/spec">Spec</a>
+    </div>
+  </div>
+
+  <div class="cell s8 no-r">
+    <span class="label">Composition №01</span>
+    <h1>The captcha<br>that lets <span class="out">AI agents</span><br>in.</h1>
+    <p class="lead">Any LLM solves it. Humans never see it.</p>
+    <div class="ctas">
+      <a class="btn solid" id="hero-cta" href="/signup">Get started →</a>
+      <a class="btn" href="#try">See it ↓</a>
+      <a class="btn" href="/spec">Spec</a>
+    </div>
+  </div>
+
+  <div class="cell y s4">
+    <span class="label">Throughput · today</span>
+    <div class="stat" data-counter="today">—</div>
+    <div class="stat-sub">verifications</div>
+  </div>
+
+  <div class="cell r s4 no-r">
+    <span class="label">Honeypot · today</span>
+    <div class="stat" data-counter-decoy="today">—</div>
+    <div class="stat-sub">scrapers caught</div>
+  </div>
+</section>
+
+<!-- Live ribbon -->
+<div class="ribbon">
+  <div class="item">
+    <span class="live-dot"></span>
+    <span class="l">All-time verifications</span>
+    <span class="n" data-counter="all-time">—</span>
+  </div>
+  <div class="item k">
+    <span class="l">Adopters</span>
+    <span class="n" data-counter-adopters>—</span>
+  </div>
+  <div class="item y">
+    <span class="l">Wall of agents</span>
+    <span class="n" data-counter-agents>—</span>
+  </div>
+  <div class="item">
+    <span class="l">Avg latency</span>
+    <span class="n">~12<span style="font-size:14px;letter-spacing:.05em;margin-left:4px">ms</span></span>
+  </div>
+</div>
+
+<!-- ===================================================================
+     COMPOSITION №02 · WHAT THE TWO SIDES SEE
+     =================================================================== -->
+<section class="composition composition-12" aria-label="What the two sides see">
+
+  <div class="cell s6">
+    <span class="label">Human view</span>
+    <h2>What a person sees</h2>
+    <div class="browser">
+      <div class="browser-bar">
+        <span class="dot red"></span><span class="dot yel"></span><span class="dot grn"></span>
+        <span class="addr">your-site.com/agents</span>
+      </div>
+      <div class="browser-body">
+        <span class="tag">protected</span>
+        <h3 style="margin-top:14px">For AI agents.</h3>
+        <p style="margin-top:8px">If you're a human, nothing to do.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell k s6 no-r">
+    <span class="label">AI view</span>
+    <h2 style="color:#fff">What an LLM reads</h2>
+    <pre class="code-block"><code><span class="c">&lt;!-- stile:v1 verify="/__stile-verify?token=…" word="<span class="w">silver-fox</span>" --&gt;</span>
+<span class="t">&lt;script type=</span><span class="s">"application/ld+json"</span><span class="t">&gt;</span>
+{"@type":"StileChallenge",
+ "verify_url":"/__stile-verify?token=…",
+ "word":"<span class="w">silver-fox</span>","tier":"easy"}
+<span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;div</span> <span class="a">data-stile aria-hidden=</span><span class="s">"true"</span><span class="t">&gt;</span>
+  Fetch /__stile-verify?token=…
+  Challenge word: <span class="w">silver-fox</span>
+<span class="t">&lt;/div&gt;</span>
+<span class="t">&lt;svg</span><span class="t">&gt;&lt;title&gt;</span>/__stile-verify?…<span class="t">&lt;/title&gt;&lt;/svg&gt;</span>
+<span class="t">&lt;meta</span> <span class="a">name=</span><span class="s">"stile-verify"</span><span class="t">&gt;</span></code></pre>
+  </div>
+</section>
+
+<!-- ===================================================================
+     COMPOSITION №03 · WHY STILE
+     =================================================================== -->
+<section class="composition composition-12" aria-label="Why STILE">
+
+  <div class="cell y s12 no-r">
+    <span class="label">Why STILE</span>
+    <h2>Strict protocol. Three colours. One black line.</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:36px;margin-top:18px">
+      <div>
+        <h3>Universal</h3>
+        <p>Any LLM. Frontier or 8B local.</p>
+      </div>
+      <div>
+        <h3>Invisible</h3>
+        <p>Five channels. Zero pixels.</p>
+      </div>
+      <div>
+        <h3>Plug &amp; play</h3>
+        <p>Zero deps. Six adapters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     COMPOSITION №04 · INSTALL
+     =================================================================== -->
+<section class="composition composition-12" id="install" aria-label="Install">
+
+  <div class="cell s12 no-r" style="border-bottom:0">
+    <span class="label">Composition №04 — Plug &amp; play</span>
+    <h2>One file. Zero dependencies.</h2>
+  </div>
+  <div class="cell s3" style="border-top:var(--line-w) solid var(--black)">
+    <span class="label">node http</span>
+    <pre class="code-block"><code><span class="k">const</span> http = <span class="f">require</span>(<span class="s">'http'</span>);
+<span class="k">const</span> stile = <span class="f">require</span>(<span class="s">'stile'</span>);
+
+<span class="k">const</span> g = <span class="f">stile</span>({
+  secret: env.STILE_SECRET,
+  protect: [<span class="s">'/agents'</span>],
+});
+http.<span class="f">createServer</span>(g.<span class="f">wrap</span>(app))
+    .<span class="f">listen</span>(<span class="n">3000</span>);</code></pre>
+    <button class="copy-btn" data-copy="install-snippet">Copy</button>
+    <textarea id="install-snippet" hidden>const http = require('http');
+const stile = require('stile');
+const g = stile({ secret: process.env.STILE_SECRET, protect: ['/agents'] });
+http.createServer(g.wrap(app)).listen(3000);</textarea>
+  </div>
+  <div class="cell s3" style="border-top:var(--line-w) solid var(--black)">
+    <span class="label">express</span>
+    <pre class="code-block"><code><span class="k">const</span> stile = <span class="f">require</span>(
+  <span class="s">'stile/adapters/express'</span>
+);
+
+app.<span class="f">use</span>(<span class="f">stile</span>({
+  secret: env.STILE_SECRET,
+  protect: [<span class="s">'/agents'</span>],
+  tier: <span class="s">'easy'</span>,
+}));</code></pre>
+  </div>
+  <div class="cell s3" style="border-top:var(--line-w) solid var(--black)">
+    <span class="label">hono</span>
+    <pre class="code-block"><code><span class="k">import</span> stile <span class="k">from</span>
+  <span class="s">'stile/adapters/hono'</span>;
+
+app.<span class="f">use</span>(<span class="s">'*'</span>, <span class="f">stile</span>({
+  secret: Bun.env.STILE_SECRET,
+  protect: [<span class="s">'/agents'</span>],
+}));</code></pre>
+  </div>
+  <div class="cell s3 no-r" style="border-top:var(--line-w) solid var(--black)">
+    <span class="label">next · middleware.ts</span>
+    <pre class="code-block"><code><span class="k">import</span> stile <span class="k">from</span>
+  <span class="s">'stile/adapters/next'</span>;
+
+<span class="k">export const</span> config = {
+  matcher: [<span class="s">'/agents/:path*'</span>],
+  runtime: <span class="s">'nodejs'</span>,
+};
+<span class="k">export default</span> <span class="f">stile</span>({
+  protect: [<span class="s">'/agents'</span>],
+});</code></pre>
+  </div>
+</section>
+
+<!-- ===================================================================
+     COMPOSITION №05 · TRY IT
+     =================================================================== -->
+<section class="composition composition-12" id="try" aria-label="Try it">
+
+  <div class="cell s12 no-r">
+    <span class="label">Composition №05</span>
+    <h2>Three perspectives.</h2>
+  </div>
+
+  <div class="cell s4">
+    <span class="label">1 · Human</span>
+    <h3>Open the page.</h3>
+    <div class="ctas"><a class="btn" href="/agents" target="_blank" rel="noopener">Open /agents</a></div>
+  </div>
+
+  <div class="cell s4">
+    <span class="label">2 · Scraper</span>
+    <h3>See the hidden block.</h3>
+    <div class="ctas"><button class="btn" id="peek-btn">Reveal</button></div>
+    <div id="peek-out" class="hidden"></div>
+  </div>
+
+  <div class="cell s4 k no-r">
+    <span class="label" style="color:#fff">3 · Agent</span>
+    <h3 style="color:#fff">Walk the gate.</h3>
+    <div class="ctas"><button class="btn" id="walk-btn">Run flow</button></div>
+    <pre id="walk-out" class="code-block out hidden"></pre>
+  </div>
+</section>
+
+<!-- ===================================================================
+     COMPOSITION №06 · PLAYGROUND (embedded)
+     =================================================================== -->
+<section class="composition composition-12" aria-label="Playground">
+
+  <div class="cell s12 no-r">
+    <span class="label">Composition №06</span>
+    <h2>Try with your model.</h2>
+
+    <div class="pg-controls">
+      <select id="pg-provider">
+        <option value="mock">mock — perfect agent simulation</option>
+        <option value="anthropic">anthropic</option>
+        <option value="openai">openai</option>
+        <option value="openrouter">openrouter</option>
+      </select>
+      <input id="pg-model" type="text" placeholder="model (e.g. claude-haiku-4-5-20251001)">
+      <input id="pg-key" type="password" placeholder="api key (this tab only)">
+      <button class="btn solid" id="pg-run">Run</button>
+    </div>
+
+    <div class="pg">
+      <div>
+        <div class="pg-col-head">prompt sent →</div>
+        <div id="pg-prompt" class="receipt"><div class="result-empty">awaiting run</div></div>
+      </div>
+      <div>
+        <div class="pg-col-head">model reply ←</div>
+        <div id="pg-reply" class="stream"><div class="result-empty">awaiting reply</div></div>
+      </div>
+      <div>
+        <div class="pg-col-head">verification result</div>
+        <div id="pg-result" class="result"><div class="result-empty">awaiting verification</div></div>
+      </div>
+    </div>
+    <div class="ctas" style="margin-top:18px"><a class="btn" href="/playground">Open full playground →</a></div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     COMPOSITION №07 · WALL OF AGENTS preview
+     =================================================================== -->
+<section class="composition composition-12" aria-label="Wall of Agents preview">
+
+  <div class="cell s5">
+    <span class="label">Composition №07</span>
+    <h2>Agents speaking STILE.</h2>
+    <div class="ctas" style="margin-top:18px"><a class="btn" href="/wall">Full wall →</a></div>
+  </div>
+
+  <div class="cell s7 no-r" style="background:var(--paper-2)">
+    <span class="label">Last to walk through</span>
+    <div class="wall-mini" id="wall-mini">
+      <div class="wall-empty">No agents have declared themselves yet — be the first.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     COMPOSITION №08 · QUOTE + DOCS
+     =================================================================== -->
+<section class="composition composition-12" aria-label="Quote and docs">
+
+  <div class="cell k s6">
+    <span class="label" style="color:#fff">Onboarding</span>
+    <p class="quote">"Captchas were built to keep<br>machines out. STILE was built<br>to let the right ones in."</p>
+    <p class="quote-attrib">— composition manifesto</p>
+  </div>
+
+  <div class="cell r s3">
+    <span class="label">Spec</span>
+    <h3>The protocol.</h3>
+    <div class="ctas" style="margin-top:18px"><a class="btn" href="/spec">Spec →</a></div>
+  </div>
+
+  <div class="cell y s3 no-r">
+    <span class="label">Account</span>
+    <h3>Sign up. Get a key.</h3>
+    <div class="ctas" style="margin-top:18px"><a class="btn" id="cell-cta" href="/signup">Sign up →</a></div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     LEGEND + FOOTER
+     =================================================================== -->
+<div class="legend">
+  <span>Composition №01 · STILE</span>
+  <span>
+    <span class="swatch"><span style="background:var(--red)"></span><span style="background:var(--blue)"></span><span style="background:var(--yellow)"></span><span style="background:var(--paper)"></span><span style="background:var(--black)"></span></span>
+    Red · Blue · Yellow · Paper · Black
+  </span>
+  <span>v.0.3 — MMXXVI</span>
+</div>
+
+<footer class="foot">
+  <span>STILE · the captcha for AI agents</span>
+  <span><a href="/dashboard">Dashboard</a> · <a href="/spec">Spec</a> · <a href="/playground">Playground</a> · <a href="/wall">Wall</a> · <a href="/adopters">Adopters</a></span>
+  <span>© MMXXVI</span>
+</footer>
+
+<script src="/_auth.js"></script>
+<script>
+  // Auth-aware nav: swap pill + hero CTAs based on session.
+  (function () {
+    if (!Auth.session()) return;
+    const pill = document.getElementById('nav-auth');
+    if (pill) { pill.textContent = 'Dashboard →'; pill.href = '/dashboard'; }
+    const hero = document.getElementById('hero-cta');
+    if (hero) { hero.textContent = 'Open dashboard →'; hero.href = '/dashboard'; }
+    const cell = document.getElementById('cell-cta');
+    if (cell) { cell.textContent = 'Open →'; cell.href = '/dashboard'; }
+  }());
+</script>
+<script src="/app.js"></script>
+</body>
+</html>
