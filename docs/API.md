@@ -72,6 +72,11 @@ const stile = createStile({
   rules:         null,        // { allow: [...], deny: [...], geoLookup }
   reputationFloor: 0,         // 0 disables; >0 forces stricter tier; <20 blocks.
 
+  // --- Rate limiting (opt-in) ------------------------------------------
+  rateLimit:     null,        // { windowMs: 60_000, maxAttempts: 10 }
+                              //   Requires store.rateLimits (built-in stores include it).
+                              //   Custom stores without rateLimits: disabled + console.warn.
+
   // --- Side channels ---------------------------------------------------
   onVerify:      null,        // function(info, req) called on successful verify.
   webhook:       null,        // { url, secret } — see §5.
@@ -202,6 +207,12 @@ A store is any object matching this shape:
     get(identity: string): { identity, score: 0..100, counters, updated_at }
     record(identity: string, change: { verifications?, decoy_hits?, ratelimit_hits? }): rep
     list({ limit? }): rep[]
+  }
+  // Optional — only present when store implements rate limiting.
+  // Required when rateLimit option is set; stile warns and disables if absent.
+  rateLimits?: {
+    hit(key: string, windowMs: number): number  // fixed-window increment; returns count in window
+    reset(key: string): void                    // clear counter (e.g. on successful verify)
   }
   adopters: {
     upsert(domain: string, info?): adopter
@@ -341,7 +352,13 @@ On rejection (`400` / `409`):
 { "error": "challenge_already_used" }
 ```
 
-Error codes are stable. The accompanying `message` text is not.
+On rate limit (`429`, only when `rateLimit` option is configured):
+
+```json
+{ "error": "rate_limit_exceeded", "retry_after": 60 }
+```
+
+The `Retry-After` response header is also set (seconds). Error codes are stable. The accompanying `message` text is not.
 
 ---
 
