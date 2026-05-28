@@ -31,11 +31,30 @@ test('production with a real 64-char secret boots', () => {
     env: {
       NODE_ENV: 'production',
       STILE_SECRET: 'a'.repeat(64),
-      // Need to satisfy bind-host check + admin
+      STILE_IP_SALT: 'b'.repeat(32),
     },
   });
   assert.equal(r.blocked, false);
   assert.equal(r.values.secret, 'a'.repeat(64));
+});
+
+test('production with no IP salt is blocked', () => {
+  const r = config.load({
+    env: {
+      NODE_ENV: 'production',
+      STILE_SECRET: 'a'.repeat(64),
+    },
+  });
+  assert.equal(r.blocked, true);
+  assert.ok(r.issues.some(i => i.includes('STILE_IP_SALT')), 'issue should mention STILE_IP_SALT');
+});
+
+test('dev with no IP salt generates an ephemeral non-null salt', () => {
+  const r = config.load({ env: {} });
+  assert.equal(r.blocked, false);
+  assert.ok(r.values.ipHashSecret !== null, 'ephemeral salt should be non-null');
+  assert.equal(typeof r.values.ipHashSecret, 'string');
+  assert.ok(r.values.ipHashSecret.length > 0);
 });
 
 test('production refuses a known-weak admin password', () => {
@@ -43,6 +62,7 @@ test('production refuses a known-weak admin password', () => {
     env: {
       NODE_ENV: 'production',
       STILE_SECRET: 'a'.repeat(64),
+      STILE_IP_SALT: 'b'.repeat(32),
       STILE_ADMIN_PASSWORD: 'admin',
     },
   });
@@ -55,6 +75,7 @@ test('production refuses a short admin password', () => {
     env: {
       NODE_ENV: 'production',
       STILE_SECRET: 'a'.repeat(64),
+      STILE_IP_SALT: 'b'.repeat(32),
       STILE_ADMIN_PASSWORD: 'shorty',
     },
   });
@@ -67,6 +88,7 @@ test('production refuses http:// webhook url', () => {
     env: {
       NODE_ENV: 'production',
       STILE_SECRET: 'a'.repeat(64),
+      STILE_IP_SALT: 'b'.repeat(32),
       STILE_WEBHOOK_URL: 'http://example.com/hook',
       STILE_WEBHOOK_SECRET: 'a'.repeat(32),
     },
