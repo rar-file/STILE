@@ -74,9 +74,10 @@ test('createRules does not throw for non-ip rule kinds', () => {
 // --- pre-parsed matching produces same results as original matchCIDR ---
 
 const CASES = [
-  { cidr: '10.0.0.0/8',    inRange: '10.1.2.3',   outRange: '11.0.0.1'   },
-  { cidr: '192.168.1.0/24',inRange: '192.168.1.99',outRange: '192.168.2.1'},
-  { cidr: '172.16.0.0/12', inRange: '172.20.1.1',  outRange: '172.32.0.1' },
+  { cidr: '10.0.0.0/8',     inRange: '10.1.2.3',      outRange: '11.0.0.1'   },
+  { cidr: '192.168.1.0/24', inRange: '192.168.1.99',  outRange: '192.168.2.1'},
+  { cidr: '172.16.0.0/12',  inRange: '172.20.1.1',    outRange: '172.32.0.1' },
+  { cidr: '2001:db8::/32',  inRange: '2001:db8::1',   outRange: '2001:db9::1' },
 ];
 
 for (const { cidr, inRange, outRange } of CASES) {
