@@ -44,6 +44,15 @@ test('parseCIDR throws on a malformed base address', () => {
   assert.throws(() => parseCIDR('999.0.0.0/8'), /Invalid CIDR base/);
 });
 
+test('parseCIDR throws on a non-numeric prefix suffix (parseInt leniency)', () => {
+  assert.throws(() => parseCIDR('10.0.0.0/8abc'), /Invalid CIDR prefix/);
+  assert.throws(() => parseCIDR('10.0.0.0/ 8'), /Invalid CIDR prefix/);
+});
+
+test('parseCIDR throws on more than one slash', () => {
+  assert.throws(() => parseCIDR('10.0.0.0/8/foo'), /expected exactly one/);
+});
+
 test('parseCIDR throws on a completely invalid string', () => {
   assert.throws(() => parseCIDR('not-an-ip'), /Invalid IP address/);
 });
