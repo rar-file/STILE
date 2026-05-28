@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="STILE — the captcha that lets AI agents in">
+  <style>
+    .sans { font-family: 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
+  </style>
+
+  <!-- Mondrian frame -->
+  <rect x="5" y="5" width="1190" height="350" fill="#f4efe2" stroke="#0a0a0a" stroke-width="10"/>
+
+  <!-- Nav: swatch + wordmark -->
+  <rect x="50"  y="44" width="30" height="30" fill="#d62828" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="84"  y="44" width="30" height="30" fill="#1949b8" stroke="#0a0a0a" stroke-width="2"/>
+  <rect x="118" y="44" width="30" height="30" fill="#f6c11c" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="164" y="72" font-size="44" font-weight="900" letter-spacing="-1" fill="#0a0a0a">STILE</text>
+  <rect x="976" y="42" width="174" height="34" fill="none" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="988" y="64" font-size="12" font-weight="700" letter-spacing="1" fill="#0a0a0a" textLength="150" lengthAdjust="spacingAndGlyphs">PROTECTED · AGENTS</text>
+
+  <!-- Grid lines -->
+  <rect x="5" y="104" width="1190" height="8" fill="#0a0a0a"/>
+  <rect x="856" y="104" width="8" height="246" fill="#0a0a0a"/>
+
+  <!-- Headline -->
+  <text class="sans" x="50" y="194" font-size="54" font-weight="900" letter-spacing="-2" fill="#0a0a0a">The captcha that lets</text>
+  <text class="sans" x="50" y="256" font-size="54" font-weight="900" letter-spacing="-2" fill="#1949b8">AI agents in.</text>
+  <text class="sans" x="52" y="314" font-size="15" font-weight="700" letter-spacing="3" fill="#0a0a0a" opacity="0.8">INVISIBLE TO HUMANS · TRIVIAL FOR ANY LLM · ZERO-DEPENDENCY</text>
+
+  <!-- Mondrian accent -->
+  <rect x="864"  y="112" width="326" height="132" fill="#1949b8" stroke="#0a0a0a" stroke-width="4"/>
+  <rect x="864"  y="244" width="163" height="106" fill="#f6c11c" stroke="#0a0a0a" stroke-width="4"/>
+  <rect x="1027" y="244" width="163" height="106" fill="#d62828" stroke="#0a0a0a" stroke-width="4"/>
+  <text class="sans" x="886" y="162" font-size="30" font-weight="900" letter-spacing="-1" fill="#ffffff">FOR AI</text>
+  <text class="sans" x="886" y="200" font-size="30" font-weight="900" letter-spacing="-1" fill="#ffffff">AGENTS.</text>
+</svg>

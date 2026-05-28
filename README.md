@@ -1,95 +1,107 @@
-# STILE
+<div align="center">
 
-[![CI](https://github.com/rar-file/STILE-/actions/workflows/ci.yml/badge.svg)](https://github.com/rar-file/STILE-/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
+<img src="assets/banner.svg" alt="STILE — the captcha that lets AI agents in" width="100%">
 
-A drop-in challenge that lets AI agents pass and humans never see.
-Read this whole page before deploying it.
+<br>
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-1949b8.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D20-d62828.svg)](package.json)
+[![Dependencies](https://img.shields.io/badge/runtime%20deps-0-f6c11c.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-0.3.0-0a0a0a.svg)](CHANGELOG.md)
+
+</div>
+
+> [!IMPORTANT]
+> STILE is a low-friction **signal**, not an auth layer. Read this whole page
+> before pointing it at real traffic — the honest limits below matter as much
+> as the features.
 
 ---
 
 ## What STILE is
 
-A small HTTP middleware. When a client requests a protected path:
+A small HTTP middleware that flips the captcha around: instead of keeping bots
+out, it waves cooperative AI agents through while staying invisible to humans.
 
-1. STILE serves a 401 + an HTML page (or JSON envelope) containing a
-   signed, single-use **verification URL**.
-2. The client (an AI agent / LLM-driven script) follows the URL, optionally
-   echoes a **challenge word**, and optionally declares an **agent**
-   identifier.
-3. STILE issues a session cookie. Subsequent requests pass through.
+When a client requests a protected path:
 
-That is the whole protocol. The hidden block is repeated across five
-mutually-redundant channels (HTML comment, JSON-LD, `aria-hidden`
-clipped text, SVG `<title>`, `<meta>` tags) so that any reasonable HTML
-parser can find it. Humans never see it.
+<p align="center">
+  <img src="assets/flow.svg" alt="The STILE handshake: GET /protected → 401 + verify URL → GET /__stile-verify → 200 + Set-Cookie → passes through" width="100%">
+</p>
+
+That's the whole protocol. The hidden block is repeated across **five
+mutually-redundant channels** — HTML comment, JSON-LD, `aria-hidden` clipped
+text, SVG `<title>`, and `<meta>` tags — so any reasonable HTML parser finds
+the verify URL. Humans never see it.
+
+---
+
+## Highlights
+
+| | |
+| --- | --- |
+| 🔓 **Inverse gate** | Admits agents, invisible to humans — by design. |
+| 🧩 **5 redundant channels** | Any HTML parser finds the verify URL. |
+| 🪜 **Three tiers** | `easy` → `medium` → `strong`, precision vs. inclusivity. |
+| ⚡ **Cryptographic fast-paths** | Web Bot Auth (Ed25519) and mTLS skip the challenge. |
+| 🔌 **Framework adapters** | Express · Fastify · Hono · Next.js · Cloudflare Workers. |
+| 📦 **Zero runtime dependencies** | The runtime is the source. Node ≥ 20. |
+| 🛡️ **Fails closed in prod** | Refuses to boot on unsafe config; warns loudly in dev. |
+| 🍯 **Batteries included** | Honeypot decoy, signed webhooks, admin dashboard. |
 
 ---
 
 ## What STILE proves
 
-A successful verification proves that the client at the time of the
-request:
+A successful verification proves that the client, at the time of the request:
 
-- Could parse the page well enough to extract one URL and fetch it.
-- Held a token whose HMAC signature matches your `STILE_SECRET` and
-  whose expiry is in the future.
-- Used a token whose nonce has not been redeemed before **on this STILE
+- ✅ Could parse the page well enough to extract one URL and fetch it.
+- ✅ Held a token whose HMAC signature matches your `STILE_SECRET` and whose
+  expiry is in the future.
+- ✅ Used a token whose nonce has not been redeemed before **on this STILE
   instance, against this store**.
-- (`tier=medium`+) relayed the challenge word from that same page.
-- (`tier=strong`) declared a self-chosen `agent=<name>` string.
+- ✅ (`tier=medium`+) relayed the challenge word from that same page.
+- ✅ (`tier=strong`) declared a self-chosen `agent=<name>` string.
 
-That's it. STILE provides a structured, low-friction *signal* that a
-specific request came from a client willing to identify itself as an AI
-agent.
+In short: a structured, low-friction *signal* that a specific request came from
+a client **willing to identify itself as an AI agent**.
 
-## What STILE does NOT prove
+## What STILE does **not** prove
 
 Be honest with yourself about the size of the gap here.
 
-- **Who the agent actually is.** `agent=anthropic/claude-3.5` is a
-  self-declared string. STILE does not verify it. (mTLS and
-  Web Bot Auth fast-paths can verify a signer — see below — but the
-  challenge flow does not.)
-- **That the client is "really" an LLM.** A 20-line script that
-  regex-extracts the verify URL passes too. STILE distinguishes "willing
-  to identify and parse" from "indifferent scraper," not "machine" from
-  "model."
-- **That the agent will respect anything you say on the page.** Stated
-  rate limits, terms, scopes — none of that is enforced by STILE.
-- **That subsequent requests come from the same client.** The session
-  cookie is a stateless HMAC. Anyone holding it for the TTL is treated
-  as verified, like any cookie-based session.
-- **That a token can't be replayed across processes.** Single-use
-  protection lives in the *store*. If your store is per-process (e.g.
-  the in-memory default with N processes), the same token can be redeemed
-  once per process.
-- **That the client's IP / UA is what it claims.** STILE records hashes
-  of the IP and UA reported by the request and an upstream proxy is
-  trusted by default.
-- **Anything cryptographic about the human or company behind the
-  agent.** Use a separate identity layer (auth, mTLS, signed contracts)
-  for that.
+- ⚠️ **Who the agent actually is.** `agent=anthropic/claude-3.5` is
+  self-declared and unverified. (mTLS and Web Bot Auth fast-paths verify a
+  *signer* — the challenge flow does not.)
+- ⚠️ **That the client is "really" an LLM.** A 20-line script that
+  regex-extracts the verify URL passes too. STILE distinguishes "willing to
+  identify and parse" from "indifferent scraper" — not "machine" from "model."
+- ⚠️ **That the agent respects anything on the page.** Stated rate limits,
+  terms, scopes — none of it is enforced by STILE.
+- ⚠️ **That later requests come from the same client.** The session cookie is a
+  stateless HMAC; anyone holding it for the TTL passes, like any cookie session.
+- ⚠️ **That a token can't be replayed across processes.** Single-use lives in
+  the *store*. A per-process store (the in-memory default) gives single-use
+  *per process*.
+- ⚠️ **That the client's IP / UA is what it claims.** STILE records hashes of
+  the reported IP/UA and trusts an upstream proxy by default.
 
-If your endpoint controls money, account access, or anything you'd be
-upset to lose, STILE is not your auth layer. It's a signal you can
-combine with your real auth layer.
+> If your endpoint controls money, account access, or anything you'd be upset to
+> lose, **STILE is not your auth layer** — it's a signal to combine with one.
 
 ---
 
 ## Who it's for
 
-- Operators publishing content they're happy for AI agents to fetch, who
-  want a cleaner signal than "everything that doesn't look like Chrome
-  is a scraper."
-- Developers building AI agents who want a polite, deterministic way to
-  identify their client at the protocol level.
-- Researchers measuring agent traffic with consent on both sides.
+- **Operators** publishing content they're happy for AI agents to fetch, who
+  want a cleaner signal than "everything that isn't Chrome is a scraper."
+- **Agent developers** who want a polite, deterministic way to identify their
+  client at the protocol level.
+- **Researchers** measuring agent traffic with consent on both sides.
 
-It's not for protecting payment endpoints, login flows, or anything
-where impersonation cost is high. It's also not a CAPTCHA replacement
-for *human* gates — humans don't see the challenge, by design.
+It is **not** for protecting payment endpoints, login flows, or anything where
+impersonation cost is high — and it's not a human CAPTCHA replacement (humans
+don't see the challenge, by design).
 
 ---
 
@@ -97,119 +109,34 @@ for *human* gates — humans don't see the challenge, by design.
 
 A request to `/__stile-verify` succeeds when **all** of the following hold:
 
-| Check                                                           | Always | Tier=medium+ | Tier=strong |
-| --------------------------------------------------------------- | :----: | :----------: | :---------: |
-| Token signature matches `STILE_SECRET`                          |   ✓    |      ✓       |      ✓      |
-| Token expiry is in the future (`challengeTtl`, default 180s)    |   ✓    |      ✓       |      ✓      |
-| Token's nonce has not been redeemed before in this store        |   ✓    |      ✓       |      ✓      |
-| Request includes the challenge `word` from the page             |        |      ✓       |      ✓      |
-| Request includes an `agent` identifier (3–64 chars, sanitized)  |        |              |      ✓      |
+| Check                                                          | `easy` | `medium` | `strong` |
+| -------------------------------------------------------------- | :----: | :------: | :------: |
+| Token signature matches `STILE_SECRET`                         |   ✅   |    ✅    |    ✅    |
+| Token expiry is in the future (`challengeTtl`, default 180 s)  |   ✅   |    ✅    |    ✅    |
+| Token's nonce has not been redeemed before in this store       |   ✅   |    ✅    |    ✅    |
+| Request includes the challenge `word` from the page            |        |    ✅    |    ✅    |
+| Request includes an `agent` identifier (3–64 chars, sanitized) |        |          |    ✅    |
 
 A successful verify sets a session cookie (`stile=…`, `HttpOnly`,
-`SameSite=Lax`, `Path=/`, `Max-Age=ttl`). The cookie is a stateless
-HMAC — its validity is checked by signature and expiry on every gated
-request.
+`SameSite=Lax`, `Path=/`, `Max-Age=ttl`) — a stateless HMAC checked by
+signature and expiry on every gated request.
 
-There are also two **fast-paths** that bypass the challenge entirely:
+### Fast-paths (skip the challenge entirely)
 
-- **Web Bot Auth (RFC 9421 HTTP Message Signatures)** — if the request
-  carries an Ed25519 signature over a fixed component set
-  (`@method`, `@authority`, `@path`) verifiable against a `keyId` in
-  your `webBotAuth.trustedSigners` list, STILE issues a session
-  immediately. The signed identity is recorded.
-- **mTLS** — if the connection presents a client certificate pinned by
-  SHA-256 fingerprint or matched by a Subject regex, STILE issues a
-  session. Two ingestion modes: `native` (read directly off the TLS
-  socket) and `proxy` (trust `X-Client-Cert-SHA256` from a known
-  upstream IP).
+- **🔑 Web Bot Auth** *(RFC 9421 HTTP Message Signatures)* — an Ed25519
+  signature over a fixed component set (`@method`, `@authority`, `@path`),
+  verified against a `keyId` in your `webBotAuth.trustedSigners`, issues a
+  session immediately. The signed identity is recorded.
+- **📜 mTLS** — a client certificate pinned by SHA-256 fingerprint or matched
+  by a Subject regex. Two modes: `native` (off the TLS socket) and `proxy`
+  (trust `X-Client-Cert-SHA256` from a known upstream IP).
 
-Fast-path verifications are recorded with `tier: 'fast-path'` and a
-`fast_path` field naming the channel.
+Fast-path verifications are recorded with `tier: 'fast-path'` and a `fast_path`
+field naming the channel.
 
 ---
 
-## What an attacker can still do
-
-A short list of failure modes by design or by configuration. Read this
-before pointing STILE at real traffic.
-
-1. **Mint tokens with a leaked secret.** If `STILE_SECRET` leaks, any
-   client can forge tokens until you rotate. There is no per-token
-   revocation — rotate the secret to invalidate everything outstanding.
-2. **Run with the demo secret.** STILE will shout about it but will
-   technically run if you set `STILE_MODE=demo`. Don't do this in
-   production. The demo string is published in the source — it is
-   not a secret.
-3. **Replay a token across processes if your store is split.** The
-   in-memory store gives single-use semantics *per process*. With N
-   workers and no shared store, a token can be redeemed up to N times.
-4. **Resell a session cookie.** The session is stateless. Anyone with
-   the cookie for the TTL window passes the gate. Limit blast radius
-   with short `ttl`.
-5. **Lie about agent identity.** `tier=strong` requires the request to
-   carry an `agent=name/version` string. STILE does not verify this is
-   the actual agent. Use the webhook + your own downstream
-   rate-limiting or ban-listing if accountability matters.
-6. **Bypass the honeypot.** The honeypot decoy is intentionally
-   announced in the page ("DO NOT FOLLOW"). It catches indiscriminate
-   scrapers that ignore the on-page instructions. A careful attacker
-   reads the instructions and skips it.
-7. **Correlate IP hashes across deployments.** With `STILE_IP_SALT`
-   unset, all instances use the same public default salt. An adversary
-   with logs from two deployments can join on `ip_hash`. Set a unique
-   salt per deployment.
-8. **Trust an unauthenticated upstream proxy.** STILE reads
-   `X-Forwarded-For` for `remoteIp` without verifying the upstream.
-   Run STILE behind a proxy you control, or strip the header at your
-   edge.
-9. **Exhaust the store.** Events, agents, and reputation grow with
-   traffic. Both in-memory and file stores cap events at `maxEvents`
-   (default 50,000). A determined adversary can fill the cap and roll
-   older events out.
-10. **Ride a fast-path with a stolen TLS cert / signing key.** mTLS and
-    Web Bot Auth verify *the holder of a key*, not *who they are*.
-    Treat compromise the same as any TLS-cert / signing-key compromise.
-
----
-
-## What operators must configure correctly
-
-The minimum bar for production. STILE refuses to boot in production if
-any of these are wrong; it warns loudly in dev/demo.
-
-- **`STILE_SECRET`** — set to a real ≥32-character value. `openssl rand
-  -hex 32`. Treat it like a cookie-signing secret. Rotate to revoke all
-  outstanding sessions.
-- **`STILE_MODE`** — leave unset. STILE detects production from
-  `NODE_ENV=production` or any of the standard host indicators
-  (`VERCEL`, `FLY_APP_NAME`, `RENDER`, `K_SERVICE`, etc.). Set it
-  explicitly to `demo` only if you understand you're shipping unsafe
-  defaults.
-- **`STILE_ADMIN_PASSWORD`** — ≥12 chars, not on the
-  known-weak list. Leave unset to disable admin entirely. Anything
-  weaker is rejected at boot.
-- **`STILE_IP_SALT`** — set to a per-deployment random value if you
-  care about cross-deployment hash correlation, log handoff, or any
-  privacy claim about IPs.
-- **`STILE_STORE`** — `memory` is fine for single-node demos. For real
-  use, choose:
-  - `file:./stile-data.json` for single-node persistence (single-writer,
-    not multi-process safe — see `docs/DEPLOY.md`).
-  - your own store object (KV, Redis, Postgres, Durable Object) for
-    multi-process / multi-region.
-- **`STILE_WEBHOOK_URL`** — must be `https://` in production.
-  `STILE_WEBHOOK_SECRET` must be ≥16 chars when set. Receivers MUST
-  verify `X-Stile-Signature: sha256=…`.
-- **Bind host** — STILE refuses to start with a non-loopback `HOST` and
-  no real secret. Don't bypass this; it exists because pointing a toy
-  instance at the open internet is the most common foot-gun.
-
-If `config.load()` reports `blocked: true`, **exit 1**. Don't try to
-recover — the failures are config errors, not transients.
-
----
-
-## Quickstart
+## ⚡ Quickstart
 
 ```bash
 npm install stile
@@ -231,34 +158,93 @@ http.createServer(stile.wrap((req, res) => {
 })).listen(3000);
 ```
 
-Or, more typically, drop the demo server in:
+Or run the demo server:
 
 ```bash
-git clone https://github.com/rar-file/STILE-.git stile
+git clone https://github.com/rar-file/STILE.git stile
 cd stile
-node server.js
+node server.js          # then visit http://localhost:4173
 ```
 
-…then visit `http://localhost:4173`. Read the startup banner — it tells
-you exactly what posture this instance is running in.
+Read the startup banner — it tells you exactly what posture the instance is in.
 
-For real deployment recipes, see `docs/DEPLOY.md`. For the trust
-boundary in detail, see `docs/THREAT_MODEL.md`. For the supported public
-API, see `docs/API.md`.
+---
+
+## 🛑 What an attacker can still do
+
+A short list of failure modes by design or by configuration. Read it before
+pointing STILE at real traffic.
+
+1. **Mint tokens with a leaked secret.** No per-token revocation — rotate
+   `STILE_SECRET` to invalidate everything outstanding.
+2. **Run with the demo secret.** STILE shouts about it but runs if you set
+   `STILE_MODE=demo`. The demo string is published in the source — it is not a
+   secret.
+3. **Replay a token across processes if your store is split.** The in-memory
+   store is single-use *per process* — with N workers, a token redeems N times.
+4. **Resell a session cookie.** The session is stateless; anyone holding it for
+   the TTL passes. Limit blast radius with a short `ttl`.
+5. **Lie about agent identity.** `tier=strong` requires an `agent=` string but
+   does not verify it. Use the webhook + your own ban-listing if accountability
+   matters.
+6. **Bypass the honeypot.** The decoy announces itself ("DO NOT FOLLOW"). It
+   catches indiscriminate scrapers; a careful attacker skips it.
+7. **Correlate IP hashes across deployments.** With `STILE_IP_SALT` unset, all
+   instances share a public default salt. Set a unique salt per deployment.
+8. **Trust an unauthenticated upstream proxy.** STILE reads `X-Forwarded-For`
+   without verifying the upstream. Run behind a proxy you control.
+9. **Exhaust the store.** Events are capped at `maxEvents` (default 50,000); a
+   determined adversary can roll older events out.
+10. **Ride a fast-path with a stolen key.** mTLS / Web Bot Auth verify *the
+    holder of a key*, not *who they are*. Treat compromise as key compromise.
+
+---
+
+## ✅ What operators must configure
+
+The minimum bar for production. STILE **refuses to boot** in production if any
+of these are wrong; it warns loudly in dev/demo.
+
+- **`STILE_SECRET`** — a real ≥ 32-char value (`openssl rand -hex 32`). Rotate
+  to revoke all outstanding sessions.
+- **`STILE_MODE`** — leave unset. STILE detects production from `NODE_ENV` or
+  host indicators (`VERCEL`, `FLY_APP_NAME`, `RENDER`, `K_SERVICE`, …). Set
+  `demo` only if you understand it ships unsafe defaults.
+- **`STILE_ADMIN_PASSWORD`** — ≥ 12 chars, not on the known-weak list. Leave
+  unset to disable admin entirely.
+- **`STILE_IP_SALT`** — a per-deployment random value if you make any privacy
+  claim about IPs or care about cross-deployment correlation.
+- **`STILE_STORE`** — `memory` for single-node demos;
+  `file:./stile-data.json` for single-node persistence; your own object
+  (KV / Redis / Postgres / Durable Object) for multi-process / multi-region.
+- **`STILE_WEBHOOK_URL`** — must be `https://` in production;
+  `STILE_WEBHOOK_SECRET` ≥ 16 chars. Receivers **must** verify
+  `X-Stile-Signature: sha256=…`.
+- **Bind host** — STILE refuses a non-loopback `HOST` with no real secret.
+
+> If `config.load()` reports `blocked: true`, **exit 1.** The failures are
+> config errors, not transients.
+
+---
+
+## 📚 Documentation
+
+| Doc | What's in it |
+| --- | --- |
+| [`docs/API.md`](docs/API.md) | The stable, supported public API surface. |
+| [`docs/DEPLOY.md`](docs/DEPLOY.md) | Production recipes: Node, serverless, edge, middleware. |
+| [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | The trust boundary in full detail. |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common operator issues — symptom → cause → fix. |
 
 ---
 
 ## Contributing
 
-PRs and issues welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for
-the development setup and what to expect during review. For
-vulnerability reports, see [`SECURITY.md`](SECURITY.md) — please don't
-file security issues in public.
-
+PRs and issues welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the dev
+setup and what to expect during review. For vulnerability reports, see
+[`SECURITY.md`](SECURITY.md) (please don't file security issues in public).
 Release notes live in [`CHANGELOG.md`](CHANGELOG.md).
-
----
 
 ## License
 
-MIT.
+[MIT](LICENSE).
