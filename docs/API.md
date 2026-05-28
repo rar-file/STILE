@@ -315,7 +315,7 @@ Routes mounted by the gate (always reserved on the host):
 | ----------------------- | --------- | ------------------------------------------------------- |
 | `/__stile-verify`       | GET, POST | Token-redemption endpoint. Returns session cookie.      |
 | `/__stile-decoy`        | GET       | Honeypot (issued only when honeypot is on).             |
-| `/health`               | GET       | Store connectivity probe. Returns `{ ok, store, uptime }`. `200` when healthy, `503` when the store is unreachable. |
+| `/health`               | GET, HEAD | Store connectivity probe. Returns `{ ok, store, uptime }` where `store` is `memory`/`file`/`custom`. `200` when healthy, `503` when the store is unreachable. Other methods → `405`. |
 
 Response shape from `/__stile-verify` on success (`200`):
 
