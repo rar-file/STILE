@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200" width="1200" height="200" role="img" aria-label="The STILE handshake: request, 401 with verify URL, fetch verify URL, 200 with session cookie, pass through">
+  <style>
+    .sans { font-family: 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0a0a0a"/>
+    </marker>
+  </defs>
+
+  <!-- Card -->
+  <rect x="4" y="4" width="1192" height="192" fill="#f4efe2" stroke="#0a0a0a" stroke-width="8"/>
+  <text class="sans" x="28" y="38" font-size="14" font-weight="700" letter-spacing="3" fill="#0a0a0a">THE STILE HANDSHAKE</text>
+
+  <!-- Step 1 -->
+  <rect x="44" y="60" width="190" height="100" fill="#ffffff" stroke="#0a0a0a" stroke-width="3"/>
+  <circle cx="72" cy="90" r="15" fill="#1949b8" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="72" y="95" font-size="15" font-weight="900" fill="#ffffff" text-anchor="middle">1</text>
+  <text class="sans" x="100" y="95" font-size="15" font-weight="700" fill="#0a0a0a">Client</text>
+  <text class="mono" x="62"  y="132" font-size="12" fill="#444444">GET /protected</text>
+
+  <!-- Step 2 -->
+  <rect x="278" y="60" width="190" height="100" fill="#ffffff" stroke="#0a0a0a" stroke-width="3"/>
+  <circle cx="306" cy="90" r="15" fill="#d62828" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="306" y="95" font-size="15" font-weight="900" fill="#ffffff" text-anchor="middle">2</text>
+  <text class="sans" x="334" y="95" font-size="15" font-weight="700" fill="#0a0a0a">STILE → 401</text>
+  <text class="mono" x="296" y="132" font-size="12" fill="#444444">+ verify URL</text>
+
+  <!-- Step 3 -->
+  <rect x="512" y="60" width="190" height="100" fill="#ffffff" stroke="#0a0a0a" stroke-width="3"/>
+  <circle cx="540" cy="90" r="15" fill="#f6c11c" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="540" y="95" font-size="15" font-weight="900" fill="#0a0a0a" text-anchor="middle">3</text>
+  <text class="sans" x="568" y="95" font-size="15" font-weight="700" fill="#0a0a0a">Agent</text>
+  <text class="mono" x="530" y="132" font-size="11" fill="#444444">GET /__stile-verify</text>
+
+  <!-- Step 4 -->
+  <rect x="746" y="60" width="190" height="100" fill="#ffffff" stroke="#0a0a0a" stroke-width="3"/>
+  <circle cx="774" cy="90" r="15" fill="#1949b8" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="774" y="95" font-size="15" font-weight="900" fill="#ffffff" text-anchor="middle">4</text>
+  <text class="sans" x="802" y="95" font-size="15" font-weight="700" fill="#0a0a0a">STILE → 200</text>
+  <text class="mono" x="764" y="132" font-size="11" fill="#444444">Set-Cookie: stile</text>
+
+  <!-- Step 5 -->
+  <rect x="980" y="60" width="190" height="100" fill="#ffffff" stroke="#0a0a0a" stroke-width="3"/>
+  <circle cx="1008" cy="90" r="15" fill="#d62828" stroke="#0a0a0a" stroke-width="2"/>
+  <text class="sans" x="1008" y="95" font-size="15" font-weight="900" fill="#ffffff" text-anchor="middle">5</text>
+  <text class="sans" x="1036" y="95" font-size="15" font-weight="700" fill="#0a0a0a">Client</text>
+  <text class="mono" x="998" y="132" font-size="12" fill="#157a3f">passes ✓</text>
+
+  <!-- Arrows -->
+  <line x1="240" y1="110" x2="272" y2="110" stroke="#0a0a0a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="474" y1="110" x2="506" y2="110" stroke="#0a0a0a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="708" y1="110" x2="740" y2="110" stroke="#0a0a0a" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="942" y1="110" x2="974" y2="110" stroke="#0a0a0a" stroke-width="3" marker-end="url(#arrow)"/>
+</svg>
