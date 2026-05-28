@@ -123,14 +123,57 @@ public — read it at your own risk.
 Tier controls what a verifying agent must prove. The trade is precision vs
 inclusivity: stronger tiers reject more legitimate small models.
 
-| Tier     | What is required at `/__stile-verify`                                     |
-| -------- | -------------------------------------------------------------------------- |
-| `easy`   | Just relay the signed token. Any LLM, any size.                            |
-| `medium` | Token + the human-readable challenge word from the page.                   |
-| `strong` | Token + word + a self-declared `agent` identifier (`agent=name/version`).  |
+| Tier     | Required at `/__stile-verify`                                              | Agent capability needed                        |
+| -------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| `easy`   | Just relay the signed token.                                               | Parse HTML and extract a value. Any LLM.       |
+| `medium` | Token + the human-readable challenge word from the page.                   | Parse HTML, locate the `aria-hidden` word.     |
+| `strong` | Token + word + a self-declared `agent` identifier (`agent=name/version`).  | Same as `medium` + ability to self-identify.   |
 
 A `fast-path` tier is also recorded in events when the request was admitted
 via Web Bot Auth, mTLS, or an `allow` rule — bypassing the challenge.
+
+**Choosing a tier:** `easy` gates the vast majority of dumb scrapers and
+headless browsers while passing all capable LLM agents. `medium` additionally
+requires that the agent parse and echo a specific word, filtering models that
+cannot reliably handle hidden HTML. `strong` adds identity declaration, which
+is useful for auditing which specific agents are accessing your service.
+There is no tier that verifies the agent's claimed identity — use Web Bot Auth
+(`webBotAuth`) for cryptographically authenticated fast-path admission.
+
+### Verify flow
+
+The decision tree inside `/__stile-verify` (all steps must pass):
+
+```
+Request to /__stile-verify
+│
+├── Parse token from ?token= query param or POST body
+│     └── Missing / malformed → 400 invalid_or_expired_challenge
+│
+├── Verify HMAC signature over token fields
+│     └── Signature mismatch → 400 invalid_or_expired_challenge
+│
+├── Check expiry (challengeTtl, default 180 s)
+│     └── Expired → 400 invalid_or_expired_challenge
+│
+├── Check nonce not already used (single-use enforcement)
+│     └── Already used → 409 challenge_already_used
+│
+├── Tier: medium or strong → require ?word= matches token word
+│     └── Missing / wrong → 400 challenge_word_required
+│
+├── Tier: strong → require ?agent= is present and non-empty
+│     └── Missing → 400 agent_declaration_required
+│
+├── Mark nonce used in store
+│
+├── Record event (kind: 'verified') + fire webhook
+│
+└── Set session cookie → 200 { ok: true, verified: true, ... }
+```
+
+Any path that reaches a 4xx does **not** consume the nonce — the agent
+may obtain a fresh challenge and retry.
 
 ---
 
@@ -268,10 +311,11 @@ Any other `process.env` key is read by user code, not by stile.
 
 Routes mounted by the gate (always reserved on the host):
 
-| Path                    | Method | Description                                     |
-| ----------------------- | ------ | ----------------------------------------------- |
-| `/__stile-verify`       | GET, POST | Token-redemption endpoint. Returns session cookie. |
-| `/__stile-decoy`        | GET    | Honeypot (issued only when honeypot is on).      |
+| Path                    | Method    | Description                                             |
+| ----------------------- | --------- | ------------------------------------------------------- |
+| `/__stile-verify`       | GET, POST | Token-redemption endpoint. Returns session cookie.      |
+| `/__stile-decoy`        | GET       | Honeypot (issued only when honeypot is on).             |
+| `/health`               | GET       | Store connectivity probe. Returns `{ ok, store, uptime }`. `200` when healthy, `503` when the store is unreachable. |
 
 Response shape from `/__stile-verify` on success (`200`):
 
