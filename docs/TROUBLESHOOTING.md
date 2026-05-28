@@ -7,18 +7,23 @@ Each section states the symptom, the likely cause, and the fix.
 
 ## Challenge word is never visible to the agent
 
-**Symptom:** The agent reports it cannot find a challenge word, or
-`/api/peek` shows `challenge_word: null`.
+**Symptom:** The agent reports it cannot find the human-readable
+challenge block on the page.
 
-**Cause:** The `stealth` option is set to `'none'`, which suppresses all
-AI-readable channels including the challenge word. Or the page HTML is
-being served before STILE has injected the challenge block.
+**Cause:** The `stealth` option is set to `'none'`, which suppresses the
+human-readable channels (`aria-hidden`, `svg`, `css`, `data-attr`). Note
+that the HTML comment and JSON-LD channels are always emitted regardless
+of `stealth`, so the verify URL and word are still present there — an
+agent that only reads the visible prose will miss them. Alternatively,
+the page HTML is being served before STILE has injected the challenge
+block.
 
 **Fix:**
 - Set `stealth: 'all'` (the default) or include at least `'aria-hidden'`
-  in the array form.
+  in the array form so the prose phrasing is emitted.
 - Verify the challenge block is present by loading the gate page and
-  inspecting the raw HTML for `data-stile` attributes or the HTML comment.
+  inspecting the raw HTML for `data-stile` attributes or the HTML comment;
+  or call `/api/peek` to see every channel STILE emits.
 - If you're using a framework adapter, confirm `stile.wrap()` or the
   middleware is applied before the route handler that serves the HTML.
 
@@ -55,7 +60,7 @@ to the verifier, but a fresh token issued immediately also appears used.
 ## Honeypot poison cookie stops blocking after a restart
 
 **Symptom:** An agent that followed the decoy link and was blocked
-(`stile-poison` cookie set) can access the site again after the server
+(`stile_blocked` cookie set) can access the site again after the server
 restarts.
 
 **Cause:** The default in-memory store does not persist across restarts.
@@ -65,8 +70,8 @@ Poison cookie state lives in the store and is lost when the process exits.
 - Switch to the file store: `STILE_STORE=file:/var/lib/stile/state.json`
 - Implement a custom store backed by Redis, KV, or a database and pass
   it to `createStile({ store: myStore })`.
-- Note: even with a persistent store, a `stile-poison` cookie has its own
-  24-hour TTL enforced by the cookie's `Max-Age` attribute. Once the
+- Note: even with a persistent store, the `stile_blocked` cookie has its
+  own 24-hour TTL enforced by the cookie's `Max-Age` attribute. Once the
   cookie expires from the browser the client is no longer blocked
   regardless of the store state.
 
@@ -97,8 +102,10 @@ match any prefix in the `protect` array.
 - Verify the `Set-Cookie` header was received and stored by the HTTP
   client by inspecting the raw verify response headers.
 - Confirm the protected path starts with one of the `protect` prefixes.
-- For cross-origin setups, consider serving STILE on the same origin or
-  setting a custom `cookieDomain`.
+- The session cookie is issued with `Path=/` and no `Domain` attribute,
+  so it is scoped to the exact origin that set it. For cross-origin
+  setups, serve STILE on the same origin as the protected routes (STILE
+  does not expose a cookie-domain option).
 
 ---
 
