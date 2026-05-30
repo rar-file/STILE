@@ -38,9 +38,7 @@ and rate limiting.
 # Required
 STILE_SECRET=$(openssl rand -hex 32)
 STILE_MODE=production            # or NODE_ENV=production
-
-# Strongly recommended
-STILE_IP_SALT=$(openssl rand -hex 16)
+STILE_IP_SALT=$(openssl rand -hex 32)   # required in production — blocks boot if unset
 STILE_STORE=file:/var/lib/stile/state.json
 STILE_TIER=easy                  # or medium / strong
 
