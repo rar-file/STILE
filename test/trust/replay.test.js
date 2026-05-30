@@ -63,3 +63,59 @@ test('two distinct tokens both redeem successfully', async () => {
     server.close();
   }
 });
+
+// --- consume() unit tests (store level) -------------------------------------
+
+const createMemoryStore = require('../../lib/store-memory');
+
+test('memory store consume() returns true for a new nonce', () => {
+  const store = createMemoryStore();
+  const expSec = Math.floor(Date.now() / 1000) + 300;
+  assert.equal(store.nonces.consume('nonce-a', expSec), true);
+});
+
+test('memory store consume() returns false on a second call with the same nonce', () => {
+  const store = createMemoryStore();
+  const expSec = Math.floor(Date.now() / 1000) + 300;
+  assert.equal(store.nonces.consume('nonce-b', expSec), true);
+  assert.equal(store.nonces.consume('nonce-b', expSec), false);
+});
+
+test('memory store consume() and has() agree on the stored nonce', () => {
+  const store = createMemoryStore();
+  const expSec = Math.floor(Date.now() / 1000) + 300;
+  assert.equal(store.nonces.has('nonce-c'), false);
+  store.nonces.consume('nonce-c', expSec);
+  assert.equal(store.nonces.has('nonce-c'), true);
+});
+
+// --- fallback path (custom store without consume) ---------------------------
+
+test('replay is still rejected when store has no consume() method (fallback path)', async () => {
+  // Build a minimal store that only implements has/add — no consume().
+  // This simulates a custom store written before consume() was added.
+  const usedNonces = new Map();
+  const baseStore = createMemoryStore();
+  const legacyStore = {
+    ...baseStore,
+    nonces: {
+      has(n) { return usedNonces.has(n); },
+      add(n, expSec) { usedNonces.set(n, expSec * 1000); },
+      // consume intentionally absent
+    },
+  };
+  assert.equal(typeof legacyStore.nonces.consume, 'undefined', 'fixture must not have consume');
+
+  const { server, stile, port } = await startServer({ store: legacyStore });
+  try {
+    const c = stile.issueChallenge();
+    const url = `/__stile-verify?token=${encodeURIComponent(c.token)}&word=${encodeURIComponent(c.word)}`;
+    const first = await get(port, url);
+    assert.equal(first.status, 200, 'first redemption should succeed via fallback path');
+    const second = await get(port, url);
+    assert.equal(second.status, 409, 'second redemption must be rejected via fallback path');
+    assert.equal(JSON.parse(second.body).error, 'challenge_already_used');
+  } finally {
+    server.close();
+  }
+});

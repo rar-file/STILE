@@ -190,7 +190,13 @@ A store is any object matching this shape:
 {
   nonces: {
     has(nonce: string): boolean
-    add(nonce: string, expSec: number): void   // expSec is seconds-since-epoch
+    add(nonce: string, expSec: number): void      // expSec is seconds-since-epoch
+    consume?(nonce: string, expSec: number): boolean  // optional — atomic check-and-add.
+                                                       // Returns true if nonce was new (proceed);
+                                                       // false if already present (reject replay).
+                                                       // When present, stile uses this instead of
+                                                       // has()+add(). Implement atomically in
+                                                       // multi-process stores (KV, Redis, etc.).
   }
   events: {
     record(event: { kind: string, ts?: number, ... }): event
