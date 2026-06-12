@@ -31,12 +31,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rar-file/STILE-.git"
+    "url": "git+https://github.com/rar-file/STILE.git"
   },
   "bugs": {
-    "url": "https://github.com/rar-file/STILE-/issues"
+    "url": "https://github.com/rar-file/STILE/issues"
   },
-  "homepage": "https://github.com/rar-file/STILE-#readme",
+  "homepage": "https://github.com/rar-file/STILE#readme",
   "engines": {
     "node": ">=20"
   }

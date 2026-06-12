@@ -27,7 +27,7 @@ doc for small changes.
 Requires Node.js ≥ 20 (for stable `node:test`).
 
 ```bash
-git clone https://github.com/rar-file/STILE-.git stile
+git clone https://github.com/rar-file/STILE.git stile
 cd stile
 node server.js
 ```

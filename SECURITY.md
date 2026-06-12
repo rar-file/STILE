@@ -55,7 +55,7 @@ them as bugs.
 Please **do not** open a public issue for security reports.
 
 Use GitHub's private vulnerability reporting:
-<https://github.com/rar-file/STILE-/security/advisories/new>
+<https://github.com/rar-file/STILE/security/advisories/new>
 
 Include, at minimum:
 

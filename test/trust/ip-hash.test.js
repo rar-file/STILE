@@ -1,8 +1,9 @@
 'use strict';
 
 // Trust-critical: IP hash salt must isolate hashes across deployments.
-// Without per-deployment STILE_IP_SALT, hashes are public-default-salted
-// and joinable across instances.
+// As of v0.4, there is no public default salt — ipHash() refuses to compute
+// a hash without one, and createStile() synthesizes an ephemeral random salt
+// when the caller didn't supply ipHashSecret.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -13,13 +14,14 @@ const crypto = require('node:crypto');
 // must be updated in the same change — that is intentional.
 function ipHash(ip, secret) {
   if (!ip) return null;
-  return crypto.createHmac('sha256', secret || 'stile-default-ip-salt')
-    .update(String(ip)).digest('hex').slice(0, 16);
+  if (!secret) return null;
+  return crypto.createHmac('sha256', secret).update(String(ip)).digest('hex').slice(0, 16);
 }
 
-test('default salt produces stable hash', () => {
-  const a = ipHash('203.0.113.4');
-  const b = ipHash('203.0.113.4');
+test('same salt produces stable hash', () => {
+  const salt = 'salt-X';
+  const a = ipHash('203.0.113.4', salt);
+  const b = ipHash('203.0.113.4', salt);
   assert.equal(a, b);
 });
 
@@ -29,10 +31,10 @@ test('different salts produce different hashes for the same IP', () => {
   assert.notEqual(a, b, 'two deployments with different salts must not produce the same hash');
 });
 
-test('default salt vs explicit salt also differ', () => {
-  const def = ipHash('203.0.113.4');
-  const exp = ipHash('203.0.113.4', 'salt-X');
-  assert.notEqual(def, exp);
+test('no salt returns null (no published default)', () => {
+  assert.equal(ipHash('203.0.113.4'), null);
+  assert.equal(ipHash('203.0.113.4', ''), null);
+  assert.equal(ipHash('203.0.113.4', null), null);
 });
 
 test('null IP yields null hash, not crash', () => {

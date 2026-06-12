@@ -247,11 +247,17 @@ doesn't**, and **what the operator must do**.
 > An attacker with logs from two STILE deployments joins them on
 > `ip_hash`.
 
-- **Stops it:** A unique `STILE_IP_SALT` per deployment.
-- **Doesn't stop it:** Default behavior with no salt — a public
-  default is used, and hashes are correlatable.
-- **Operator action:** Always set `STILE_IP_SALT` per deployment in
-  production.
+- **Stops it:** A unique `STILE_IP_SALT` per deployment. As of v0.4 the
+  config layer **refuses to boot in production** when `STILE_IP_SALT` is
+  unset or set to the published default — there is no longer a silent
+  shared-default fallback.
+- **Doesn't stop it:** Reused salts across deployments — operators sharing
+  one value across hosts collapse the salt's protection. Each deployment
+  needs its own.
+- **Operator action:** Always set a unique `STILE_IP_SALT` per deployment
+  in production (`openssl rand -hex 32`). In dev/demo, an ephemeral random
+  salt is synthesized per process; hashes will not correlate across
+  restarts.
 
 ### T12. Webhook MITM / replay
 
@@ -266,17 +272,24 @@ doesn't**, and **what the operator must do**.
 
 ### T13. Resource exhaustion
 
-> An attacker drives traffic to fill the events buffer or the file
-> store.
+> An attacker drives traffic to fill the events buffer, fill the file
+> store, or burn CPU on signature verification.
 
 - **Stops it:** `maxEvents` (default 50,000) caps the events array;
   older events roll out. Daily counters and reputation grow but
-  bounded by distinct agents/days.
-- **Doesn't stop it:** Network-level DoS. CPU exhaustion on
-  HMAC verification at the rate of incoming requests.
-- **Operator action:** Run STILE behind a proxy with rate limiting and
-  request-size caps. The handler caps body reads at 16 KB, but headers
-  and connection-level abuse are upstream concerns.
+  bounded by distinct agents/days. The optional
+  `rateLimit: { windowMs, maxAttempts }` option on `createStile` (v0.4+)
+  enables a store-backed per-IP-hash limit on `/__stile-verify` that
+  returns `429 + Retry-After` once the threshold is exceeded — this
+  caps HMAC-verification CPU at the gate layer without needing a proxy
+  in front.
+- **Doesn't stop it:** Network-level DoS. Attacks that don't hit the
+  verify endpoint (e.g. flooding the gated path with no token, which
+  short-circuits to a cheap 401 but still consumes a request).
+- **Operator action:** Enable `rateLimit` for defense-in-depth, but also
+  run STILE behind a proxy with rate limiting and request-size caps.
+  The handler caps body reads at 16 KB, but headers and connection-level
+  abuse are upstream concerns.
 
 ### T14. Secret leak via logs
 

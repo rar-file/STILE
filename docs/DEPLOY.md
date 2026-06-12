@@ -37,8 +37,10 @@ and rate limiting.
 ```bash
 # Required
 STILE_SECRET=$(openssl rand -hex 32)
+STILE_IP_SALT=$(openssl rand -hex 32)   # per-deployment; required in prod
 STILE_MODE=production            # or NODE_ENV=production
-STILE_IP_SALT=$(openssl rand -hex 32)   # required in production — blocks boot if unset
+
+# Strongly recommended
 STILE_STORE=file:/var/lib/stile/state.json
 STILE_TIER=easy                  # or medium / strong
 
@@ -115,8 +117,8 @@ in the response.
   got an HTTP-only public endpoint.
 - Multiple workers on one file store. Use a real store (Recipe-3
   KV / Recipe-2 KV) or one writer.
-- Forgetting `STILE_IP_SALT`. Hashes are usable but cross-deployment
-  joinable.
+- Forgetting `STILE_IP_SALT`. As of v0.4 this **refuses to boot in
+  production** — generate one with `openssl rand -hex 32`.
 
 ---
 

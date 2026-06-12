@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Optional `nonces.consume(nonce, expSec) → boolean` on the store contract.
+  When present it atomically check-and-records a nonce; `handleVerify` prefers
+  it and falls back to `has()` + `add()` so custom stores written against the
+  older contract keep working. Closes #5.
+- Opt-in `rateLimit: { windowMs, maxAttempts }` option on `createStile`.
+  Store-backed limit on `/__stile-verify` keyed by IP hash; returns
+  `429 + Retry-After` once the threshold is exceeded. Both shipped stores
+  implement the new `rateLimits` namespace; custom stores without it silently
+  disable the limit with a one-time warning. Closes #6.
+
+### Changed
+
+- **BREAKING (production):** `STILE_IP_SALT` is now required in production.
+  Boot is refused when it is unset or set to the published default. In
+  dev/demo, an ephemeral random salt is synthesized with a one-time notice.
+  The hardcoded fallback salt has been removed from `ipHash()`. Closes #7.
+
 ## [0.3.0] - 2025-05-03
 
 Initial public release.
@@ -45,5 +64,5 @@ Initial public release.
   `test/routing/` (API shapes, gated routes, badge ping, playground SSE,
   static pages).
 
-[Unreleased]: https://github.com/rar-file/STILE-/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/rar-file/STILE-/releases/tag/v0.3.0
+[Unreleased]: https://github.com/rar-file/STILE/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rar-file/STILE/releases/tag/v0.3.0

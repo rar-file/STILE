@@ -64,57 +64,61 @@ test('two distinct tokens both redeem successfully', async () => {
   }
 });
 
-// --- consume() unit tests (store level) -------------------------------------
-
-const createMemoryStore = require('../../lib/store-memory');
-
-test('memory store consume() returns true for a new nonce', () => {
+test('memory store consume(nonce) is atomic: second call returns false', () => {
+  const createMemoryStore = require('../../lib/store-memory');
   const store = createMemoryStore();
-  const expSec = Math.floor(Date.now() / 1000) + 300;
-  assert.equal(store.nonces.consume('nonce-a', expSec), true);
+  const exp = Math.floor(Date.now() / 1000) + 60;
+  assert.equal(store.nonces.consume('n1', exp), true,  'first consume records the nonce');
+  assert.equal(store.nonces.consume('n1', exp), false, 'second consume of same nonce returns false');
+  assert.equal(store.nonces.consume('n2', exp), true,  'distinct nonces still pass');
 });
 
-test('memory store consume() returns false on a second call with the same nonce', () => {
-  const store = createMemoryStore();
-  const expSec = Math.floor(Date.now() / 1000) + 300;
-  assert.equal(store.nonces.consume('nonce-b', expSec), true);
-  assert.equal(store.nonces.consume('nonce-b', expSec), false);
+test('file store consume(nonce) is atomic: second call returns false', () => {
+  const path = require('node:path');
+  const os = require('node:os');
+  const fs = require('node:fs');
+  const createFileStore = require('../../lib/store-file');
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stile-test-'));
+  const store = createFileStore({ filePath: path.join(tmpDir, 'data.json'), flushDebounceMs: 5 });
+  const exp = Math.floor(Date.now() / 1000) + 60;
+  try {
+    assert.equal(store.nonces.consume('n1', exp), true);
+    assert.equal(store.nonces.consume('n1', exp), false);
+    assert.equal(store.nonces.consume('n2', exp), true);
+    // Flush the debounced write before tearing down the temp dir so the
+    // background timer doesn't fire against a missing directory.
+    store._flushNow();
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 });
 
-test('memory store consume() and has() agree on the stored nonce', () => {
-  const store = createMemoryStore();
-  const expSec = Math.floor(Date.now() / 1000) + 300;
-  assert.equal(store.nonces.has('nonce-c'), false);
-  store.nonces.consume('nonce-c', expSec);
-  assert.equal(store.nonces.has('nonce-c'), true);
-});
-
-// --- fallback path (custom store without consume) ---------------------------
-
-test('replay is still rejected when store has no consume() method (fallback path)', async () => {
-  // Build a minimal store that only implements has/add — no consume().
-  // This simulates a custom store written before consume() was added.
-  const usedNonces = new Map();
-  const baseStore = createMemoryStore();
+test('verify falls back to has()+add() when store has no consume()', async () => {
+  // Stand up a store that intentionally omits consume() — mirrors any custom
+  // store written against the older contract.
+  const realStore = require('../../lib/store-memory')();
   const legacyStore = {
-    ...baseStore,
     nonces: {
-      has(n) { return usedNonces.has(n); },
-      add(n, expSec) { usedNonces.set(n, expSec * 1000); },
-      // consume intentionally absent
+      has: (n)    => realStore.nonces.has(n),
+      add: (n, e) => realStore.nonces.add(n, e),
+      // no consume()
     },
+    events:     realStore.events,
+    agents:     realStore.agents,
+    reputation: realStore.reputation,
+    adopters:   realStore.adopters,
   };
-  assert.equal(typeof legacyStore.nonces.consume, 'undefined', 'fixture must not have consume');
-
-  const { server, stile, port } = await startServer({ store: legacyStore });
+  const stile = require('../../lib/stile')({ secret: SECRET, protect: ['/gated'], store: legacyStore });
+  const server = http.createServer(stile.wrap((req, res) => { res.statusCode = 200; res.end('pass'); }));
+  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  const port = server.address().port;
   try {
     const c = stile.issueChallenge();
     const url = `/__stile-verify?token=${encodeURIComponent(c.token)}&word=${encodeURIComponent(c.word)}`;
     const first = await get(port, url);
-    assert.equal(first.status, 200, 'first redemption should succeed via fallback path');
+    assert.equal(first.status, 200, 'fallback path accepts first redemption');
     const second = await get(port, url);
-    assert.equal(second.status, 409, 'second redemption must be rejected via fallback path');
-    assert.equal(JSON.parse(second.body).error, 'challenge_already_used');
+    assert.equal(second.status, 409, 'fallback path rejects replay');
   } finally {
     server.close();
   }

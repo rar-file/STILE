@@ -72,14 +72,18 @@ const stile = createStile({
   rules:         null,        // { allow: [...], deny: [...], geoLookup }
   reputationFloor: 0,         // 0 disables; >0 forces stricter tier; <20 blocks.
 
-  // --- Rate limiting (opt-in) ------------------------------------------
-  rateLimit:     null,        // { windowMs: 60_000, maxAttempts: 10 }
-                              //   Requires store.rateLimits (built-in stores include it).
-                              //   Custom stores without rateLimits: disabled + console.warn.
-
   // --- Side channels ---------------------------------------------------
   onVerify:      null,        // function(info, req) called on successful verify.
   webhook:       null,        // { url, secret } — see §5.
+
+  // --- Rate limiting ---------------------------------------------------
+  rateLimit:     null,        // null → disabled (default).
+                              // { windowMs, maxAttempts } → store-backed
+                              // limit on /__stile-verify, keyed by IP hash.
+                              // Returns 429 + Retry-After once the count
+                              // exceeds maxAttempts in the window.
+                              // No-op + one-time warn when the store has
+                              // no rateLimits namespace.
 });
 ```
 
@@ -190,13 +194,8 @@ A store is any object matching this shape:
 {
   nonces: {
     has(nonce: string): boolean
-    add(nonce: string, expSec: number): void      // expSec is seconds-since-epoch
-    consume?(nonce: string, expSec: number): boolean  // optional — atomic check-and-add.
-                                                       // Returns true if nonce was new (proceed);
-                                                       // false if already present (reject replay).
-                                                       // When present, stile uses this instead of
-                                                       // has()+add(). Implement atomically in
-                                                       // multi-process stores (KV, Redis, etc.).
+    add(nonce: string, expSec: number): void   // expSec is seconds-since-epoch
+    consume?(nonce: string, expSec: number): boolean  // optional, see below
   }
   events: {
     record(event: { kind: string, ts?: number, ... }): event
@@ -214,26 +213,47 @@ A store is any object matching this shape:
     record(identity: string, change: { verifications?, decoy_hits?, ratelimit_hits? }): rep
     list({ limit? }): rep[]
   }
-  // Optional — only present when store implements rate limiting.
-  // Required when rateLimit option is set; stile warns and disables if absent.
-  rateLimits?: {
-    hit(key: string, windowMs: number): number  // fixed-window increment; returns count in window
-    reset(key: string): void                    // clear counter (e.g. on successful verify)
-  }
   adopters: {
     upsert(domain: string, info?): adopter
     setStatus(domain: string, status: string): adopter | undefined
     list({ status? }): adopter[]
     get(domain: string): adopter | null
   }
+  rateLimits?: {                                            // optional, see below
+    hit(key: string, windowMs: number): { count, expiresAt } // expiresAt is ms-since-epoch
+    reset(key: string): void
+  }
 }
 ```
+
+**`nonces.consume(nonce, expSec)`** is optional. When present it must
+atomically check whether the nonce has been seen and, if not, record it —
+returning `true` if newly recorded, `false` if it had already been used.
+This is the only safe primitive in multi-process deployments: the default
+fallback (`has()` + `add()` as separate calls) races across processes,
+allowing the same challenge token to be redeemed once per worker. STILE
+calls `consume()` when the store provides it and falls back to the two-call
+pattern when it does not, so existing custom stores continue to work
+unchanged.
 
 Two stores are shipped:
 
 - **`createMemoryStore()`** — in-process, lost on restart. Default.
+  Implements `consume()` as a synchronous Map check-and-set.
 - **`createFileStore({ filePath, ... })`** — JSON file with debounced atomic
-  writes + fsync. **Single-process only.** See `docs/DEPLOY.md` for limits.
+  writes + fsync. **Single-process only.** Implements `consume()` as a
+  synchronous check-and-set (single-process critical section). See
+  `docs/DEPLOY.md` for limits.
+
+**`rateLimits`** is optional. When the `rateLimit` option is set on
+`createStile`, STILE calls `rateLimits.hit(key, windowMs)` once per
+`/__stile-verify` request and returns `429 + Retry-After` once the count
+exceeds `maxAttempts`. `hit()` should increment a sliding-window counter
+keyed by `key` and return the new `count` plus the absolute `expiresAt`
+millisecond timestamp at which the window resets. Both shipped stores
+implement this namespace; custom stores that do not are detected at
+construction time and the rate limit silently disables itself with a
+one-time `console.warn`.
 
 `createStile` accepts shorthands on the `store` option:
 
@@ -349,22 +369,22 @@ Response shape from `/__stile-verify` on success (`200`):
 }
 ```
 
-On rejection (`400` / `409`):
+On rejection (`400` / `409` / `429`):
 
 ```json
 { "error": "invalid_or_expired_challenge" }
 { "error": "challenge_word_required",  "expected_field": "word"  }
 { "error": "agent_declaration_required", "expected_field": "agent" }
 { "error": "challenge_already_used" }
+{ "error": "rate_limited", "retry_after": 42, "hint": "Too many verify attempts. Try again in 42s." }
 ```
 
-On rate limit (`429`, only when `rateLimit` option is configured):
+When the `rateLimit` option is configured and an IP exceeds
+`maxAttempts` in `windowMs`, `/__stile-verify` returns `429` with a
+`Retry-After` header (seconds) and the JSON body above. Without
+`rateLimit`, the endpoint never returns `429`.
 
-```json
-{ "error": "rate_limit_exceeded", "retry_after": 60 }
-```
-
-The `Retry-After` response header is also set (seconds). Error codes are stable. The accompanying `message` text is not.
+Error codes are stable. The accompanying `message` text is not.
 
 ---
 
