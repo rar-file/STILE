@@ -33,6 +33,17 @@ html, body {
 }
 ::selection { background: var(--yellow); color: var(--black); }
 
+/* ---- Accessibility: every interactive element shows a clear keyboard focus,
+   and motion is dropped for users who ask for it. ---- */
+a:focus-visible, button:focus-visible,
+select:focus-visible, input:focus-visible, textarea:focus-visible,
+.btn:focus-visible, .nav-pill:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--blue); outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
 /* ---- Nav ---- */
 
 nav.nav {
@@ -61,19 +72,27 @@ nav.nav {
   border: 2px solid var(--black); padding: 3px 8px; margin-left: 4px;
 }
 
-.nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
+.nav-links { display: flex; gap: 14px; list-style: none; align-items: center; }
 .nav-links a {
   font-weight: 700; font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
   color: var(--black); text-decoration: none;
+  padding: 6px 10px; border: 2px solid transparent;
+  transition: background .12s ease, border-color .12s ease;
 }
-.nav-links a:hover { background: var(--yellow); padding: 2px 6px; margin: -2px -6px; }
+/* A persistent box on hover/focus (and the current page) so links read as
+   targets, not running text. */
+.nav-links a:hover { background: var(--yellow); border-color: var(--black); }
+.nav-links a[aria-current="page"] { border-color: var(--black); background: var(--paper-2); }
+
 .nav-pill {
   background: var(--black); color: var(--paper);
-  padding: 11px 20px; font-weight: 900; font-size: 12px;
+  padding: 11px 18px; font-weight: 900; font-size: 12px;
   letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
-  border: 2px solid var(--black);
+  border: 3px solid var(--black); box-shadow: 3px 3px 0 var(--black);
+  transition: transform .07s ease, box-shadow .07s ease, background .12s ease;
 }
-.nav-pill:hover { background: var(--paper); color: var(--black); }
+.nav-pill:hover { background: var(--blue); color: #fff; }
+.nav-pill:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--black); }
 
 /* ---- Composition grid (Mondrian-style cells) ---- */
 
@@ -163,25 +182,43 @@ nav.nav {
   max-width: 60ch; margin-top: 18px; font-size: 18px; line-height: 1.5;
 }
 
-/* ---- Buttons ---- */
+/* ---- Buttons ----
+   Affordance model: an interactive control reads as physically raised — a
+   solid offset shadow at rest, a colour shift on hover, and a press that
+   pushes it down into its own shadow. Decorative chips (.tag, .label) stay
+   deliberately flat, so a button is never mistaken for a badge and vice
+   versa. The shadow is a hard black square — no blur — so it stays inside
+   the De Stijl language. */
 
-.ctas { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.ctas { display: flex; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
 .btn {
-  padding: 9px 14px; border: 2px solid var(--black); color: var(--black);
-  font-weight: 700; font-size: 12px; letter-spacing: .06em;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 12px 18px; border: 3px solid var(--black); color: var(--black);
+  font-weight: 800; font-size: 13px; letter-spacing: .04em;
   text-transform: uppercase; text-decoration: none; background: var(--paper);
-  cursor: pointer; font-family: inherit; display: inline-block; line-height: 1;
+  cursor: pointer; font-family: inherit; line-height: 1;
+  box-shadow: 4px 4px 0 var(--black);
+  transition: transform .07s ease, box-shadow .07s ease, background .12s ease, color .12s ease;
 }
-.btn.solid { background: var(--black); color: var(--paper); }
 .btn:hover { background: var(--yellow); border-color: var(--black); color: var(--black); }
-.btn.solid:hover { background: var(--paper); color: var(--black); }
+.btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 var(--black); }
+
+/* Primary action — filled, the clear "do this" target on a page. */
+.btn.solid { background: var(--black); color: var(--paper); }
+.btn.solid:hover { background: var(--blue); color: #fff; }
+
+/* On coloured / dark cells a button becomes a paper chip so it still reads as
+   a raised control; on the black cell the shadow flips to paper so it shows. */
 .cell.r .btn, .cell.b .btn, .cell.k .btn {
-  border-color: #fff; color: #fff; background: transparent;
+  background: var(--paper); color: var(--black); border-color: var(--black);
 }
-.cell.r .btn:hover, .cell.b .btn:hover, .cell.k .btn:hover {
-  background: #fff; color: var(--black);
-}
-.cell.y .btn { border-color: var(--black); color: var(--black); }
+.cell.r .btn:hover, .cell.b .btn:hover { background: var(--yellow); color: var(--black); }
+.cell.k .btn { box-shadow: 4px 4px 0 var(--paper); }
+.cell.k .btn:hover { background: var(--yellow); color: var(--black); }
+.cell.k .btn:active { box-shadow: 0 0 0 0 var(--paper); }
+
+/* Yellow cell: hover to black so the button doesn't dissolve into the cell. */
+.cell.y .btn { border-color: var(--black); color: var(--black); background: var(--paper); }
 .cell.y .btn:hover { background: var(--black); color: var(--yellow); }
 
 /* ---- "Live agent" panel inside a colored cell ---- */
@@ -293,10 +330,13 @@ nav.nav {
 }
 .receipt-foot button {
   font-family: inherit; background: var(--paper); border: 2px solid var(--black);
-  padding: 4px 10px; font-size: 9px; letter-spacing: .12em;
+  padding: 5px 11px; font-size: 9px; letter-spacing: .12em;
   text-transform: uppercase; font-weight: 700; cursor: pointer;
+  box-shadow: 2px 2px 0 var(--black);
+  transition: transform .07s ease, box-shadow .07s ease, background .12s ease;
 }
 .receipt-foot button:hover { background: var(--yellow); }
+.receipt-foot button:active { transform: translate(2px, 2px); box-shadow: 0 0 0 0 var(--black); }
 
 /* === Token stream (used by playground reply panel) === */
 .stream {
@@ -384,10 +424,13 @@ nav.nav {
   background: var(--paper); border: 2px solid var(--black);
   font-family: inherit; font-size: 10px; letter-spacing: .1em;
   text-transform: uppercase; font-weight: 700;
-  padding: 5px 10px; cursor: pointer; color: var(--black);
+  padding: 6px 11px; cursor: pointer; color: var(--black);
+  box-shadow: 3px 3px 0 var(--black);
+  transition: transform .07s ease, box-shadow .07s ease, background .12s ease;
 }
 .copy-btn:hover { background: var(--yellow); }
-.copy-btn.copied { background: var(--black); color: var(--paper); }
+.copy-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--black); }
+.copy-btn.copied { background: var(--black); color: var(--paper); box-shadow: 3px 3px 0 var(--black); }
 
 /* ---- Live counter ribbon (sits between hero and next composition) ---- */
 
@@ -443,6 +486,9 @@ nav.nav {
 .pg-controls select:focus, .pg-controls input:focus {
   outline: none; background: var(--yellow);
 }
+.pg-controls select:focus-visible, .pg-controls input:focus-visible {
+  outline: 3px solid var(--blue); outline-offset: 2px;
+}
 
 /* ---- Shared step markers (used by dashboard + playground) ---- */
 .step-marker-sm {
@@ -486,6 +532,7 @@ nav.nav {
   -webkit-appearance: none; -moz-appearance: none; appearance: none;
 }
 .cfg-input:focus { outline: none; background: var(--yellow); }
+.cfg-input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 /* Native <select> needs an explicit arrow once appearance is stripped */
 select.cfg-input {
   padding-right: 30px; cursor: pointer;
@@ -531,12 +578,16 @@ select.cfg-input::-ms-expand { display: none; }
 }
 .browser-body { padding: 28px; }
 
-/* ---- Tag pills (inside cells) ---- */
+/* ---- Tag pills (inside cells) ----
+   Purely a status badge. Flat (no shadow) and non-clickable on purpose, so it
+   is visually distinct from a .btn — that flat-vs-raised contrast is what tells
+   the reader which chips do something. */
 
 .tag {
   display: inline-block; font-size: 10px; letter-spacing: .14em;
   text-transform: uppercase; font-weight: 700;
   padding: 3px 8px; border: 2px solid currentColor; margin-right: 6px;
+  cursor: default; opacity: .85;
 }
 
 /* ---- Quote cell ---- */
@@ -581,6 +632,8 @@ footer.foot a:hover { background: var(--yellow); color: var(--black); padding: 2
 .shell-pad h2 { font-size: 28px; font-weight: 900; margin: 36px 0 12px; letter-spacing: -.01em; }
 .shell-pad h3 { font-size: 18px; font-weight: 900; margin: 22px 0 8px; }
 .shell-pad p, .shell-pad li { font-size: 15px; line-height: 1.6; max-width: 70ch; }
+.shell-pad a { color: var(--blue); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.shell-pad a:hover { background: var(--yellow); color: var(--black); text-decoration: none; }
 .shell-pad code { font-family: var(--mono); background: var(--paper-2); padding: 1px 6px; border: 1px solid var(--black); font-size: 13px; }
 .shell-pad pre { background: var(--black); color: var(--paper); padding: 14px 16px; border: 2px solid var(--black); overflow-x: auto; font-size: 12.5px; line-height: 1.55; margin: 10px 0; }
 .shell-pad .note {

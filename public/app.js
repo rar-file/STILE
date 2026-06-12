@@ -2,6 +2,15 @@
 //  STILE landing scripts
 // =============================================================
 
+// Mark the nav link for the current page so visitors can see where they are.
+(function markCurrentNav() {
+  const here = location.pathname.replace(/\/$/, '') || '/';
+  for (const a of document.querySelectorAll('.nav-links a')) {
+    const target = a.getAttribute('href').replace(/\/$/, '') || '/';
+    if (target !== '/' && here === target) a.setAttribute('aria-current', 'page');
+  }
+})();
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

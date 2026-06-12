@@ -18,10 +18,12 @@
   .auth-form .label { margin: 0; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
-  .field input { font-family: var(--mono); font-size: 14px; padding: 12px 14px; border: 2px solid var(--black); background: #fff; outline: none; }
-  .field input:focus { background: var(--yellow); }
-  .auth-submit { background: var(--black); color: var(--paper); border: 2px solid var(--black); padding: 14px 18px; font-weight: 900; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
-  .auth-submit:hover { background: var(--paper); color: var(--black); }
+  .field input { font-family: var(--mono); font-size: 14px; padding: 12px 14px; border: 2px solid var(--black); background: #fff; }
+  .field input:focus { outline: none; background: var(--yellow); }
+  .field input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .auth-submit { background: var(--black); color: var(--paper); border: 3px solid var(--black); padding: 14px 18px; font-weight: 900; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; box-shadow: 4px 4px 0 var(--black); transition: transform .07s ease, box-shadow .07s ease, background .12s ease; }
+  .auth-submit:hover { background: var(--blue); color: #fff; }
+  .auth-submit:active { transform: translate(4px, 4px); box-shadow: 0 0 0 0 var(--black); }
   .auth-alt { font-size: 12px; }
   .auth-alt a { color: var(--blue); font-weight: 700; }
   .auth-err { background: var(--red); color: #fff; padding: 10px 12px; font-size: 12px; font-weight: 700; letter-spacing: .04em; display: none; }
