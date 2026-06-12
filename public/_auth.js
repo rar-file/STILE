@@ -36,6 +36,14 @@
   }
 
   async function hashPassword(password, salt) {
+    // Web Crypto (crypto.subtle) is only exposed in a secure context — HTTPS
+    // or localhost. Over plain http:// (e.g. a LAN/Tailscale IP) it's
+    // undefined, which would otherwise surface as a cryptic
+    // "Cannot read properties of undefined (reading 'importKey')".
+    if (typeof crypto === 'undefined' || !crypto.subtle) {
+      throw new Error('Secure connection required: open this site over https:// (or http://localhost). ' +
+        'Your browser only provides the Web Crypto API needed for accounts in a secure context.');
+    }
     const keyMaterial = await crypto.subtle.importKey(
       'raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']
     );
