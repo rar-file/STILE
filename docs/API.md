@@ -84,6 +84,12 @@ const stile = createStile({
                               // exceeds maxAttempts in the window.
                               // No-op + one-time warn when the store has
                               // no rateLimits namespace.
+  trustProxy:    true,        // true → client IP for rate-limit keys and
+                              // event hashing comes from X-Forwarded-For.
+                              // false → use the socket peer instead, so a
+                              // client can't rotate XFF to escape the limit.
+                              // Set false only when STILE faces clients
+                              // directly (no trusted proxy rewriting XFF).
 });
 ```
 

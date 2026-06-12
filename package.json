@@ -1,6 +1,6 @@
 {
   "name": "stile",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "STILE — the captcha that lets AI agents in. Invisible to humans, trivial for any LLM, plug-and-play.",
   "main": "lib/stile.js",
   "exports": {

@@ -236,11 +236,17 @@ doesn't**, and **what the operator must do**.
 > The operator runs STILE without a trusted proxy and an attacker sets
 > `X-Forwarded-For: 127.0.0.1` to look like the loopback peer.
 
-- **Stops it:** Nothing — STILE reads `X-Forwarded-For` first.
-- **Operator action:** Either bind STILE to loopback and front it
-  with a proxy that overwrites the header, or run on a host that
-  doesn't expose the loopback admin path, or strip `X-Forwarded-For`
-  at the edge before STILE sees it.
+- **Stops it:** Nothing for the admin loopback check — STILE reads
+  `X-Forwarded-For` first. For the rate limiter and event IP hashing,
+  setting `trustProxy: false` on `createStile` ignores `X-Forwarded-For`
+  and keys on the socket peer, so a client facing STILE directly cannot
+  rotate the header to mint fresh rate-limit buckets.
+- **Operator action:** When fronted by a trusted proxy, leave
+  `trustProxy: true` (default) and ensure the proxy overwrites
+  `X-Forwarded-For`. When STILE faces clients directly, set
+  `trustProxy: false`. Either way, bind STILE to loopback or strip
+  `X-Forwarded-For` at the edge so the admin loopback check can't be
+  spoofed.
 
 ### T11. IP hash correlation across deployments
 

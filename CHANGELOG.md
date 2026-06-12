@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-12
+
 ### Added
 
 - Optional `nonces.consume(nonce, expSec) → boolean` on the store contract.
@@ -18,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `429 + Retry-After` once the threshold is exceeded. Both shipped stores
   implement the new `rateLimits` namespace; custom stores without it silently
   disable the limit with a one-time warning. Closes #6.
+- `trustProxy` option on `createStile` (default `true`). When `false`, the
+  client IP used for rate-limit keys and event hashing is taken from the
+  socket peer instead of `X-Forwarded-For`, so a client can't escape the
+  rate limiter by rotating the header.
 
 ### Changed
 
@@ -25,6 +31,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Boot is refused when it is unset or set to the published default. In
   dev/demo, an ephemeral random salt is synthesized with a one-time notice.
   The hardcoded fallback salt has been removed from `ipHash()`. Closes #7.
+- Consolidated duplicated helpers (`b64url`, `hmac`, `safeEq`, `htmlEscape`,
+  `todayIso`, `readBody`) into `lib/util.js`. The verify endpoint's request
+  body cap is now 16 KB, matching the documented handler limit.
+
+### Fixed
+
+- **DoS:** a request with a malformed cookie (e.g. `stile=%`) threw an
+  uncaught `URIError` out of the ungated request path and crashed the
+  process. Cookie parsing now falls back to the raw value, and request-URL
+  construction tolerates a malformed `Host` header.
+- Honeypot decoy tokens now honor their signed expiry (like poison cookies
+  already did) instead of being accepted indefinitely.
 
 ## [0.3.0] - 2025-05-03
 
@@ -64,5 +82,6 @@ Initial public release.
   `test/routing/` (API shapes, gated routes, badge ping, playground SSE,
   static pages).
 
-[Unreleased]: https://github.com/rar-file/STILE/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/rar-file/STILE/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/rar-file/STILE/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/rar-file/STILE/releases/tag/v0.3.0
